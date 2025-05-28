@@ -50,4 +50,14 @@ public class Member {
 
     @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
     private List<MemberProject> membersProjects;
+
+    // 회원가입 용 생성자
+    public Member(String id, String password, String name, String email, Company company, Department department) {
+        this.id = id;
+        this.password = password;
+        this.name = name;
+        this.email = email;
+        this.company = company;
+        this.department = department;
+    }
 }
