@@ -15,12 +15,13 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
-import lombok.Getter;
+
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "document")
-@Getter
+@Data
 @NoArgsConstructor
 public class Document {
 
@@ -40,11 +41,11 @@ public class Document {
     private boolean isMemberUpload;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", insertable = false, updatable = false)
+    @JoinColumn(name = "project_id")
     private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doc_type_id", insertable = false, updatable = false)
+    @JoinColumn(name = "doc_type_id")
     private DocType docType;
 
     @OneToMany(mappedBy = "document", fetch = FetchType.LAZY)
