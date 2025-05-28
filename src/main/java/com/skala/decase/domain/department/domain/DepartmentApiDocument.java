@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
 @Tag(name = "department API", description = "부서 관리를 위한 api 입니다.")
 public @interface DepartmentApiDocument {
 
-    @Operation(summary = "검색", description = "검색입니다..")
+    @Operation(summary = "부서 검색", description = "키워드가 없으면 companyId에 해당하는 모든 부서 목록을 반환합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "검색 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
