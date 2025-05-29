@@ -38,13 +38,8 @@ out/
 
 ### env ###
 .env
-.env.properties
-
-### MacOS ###
-.DS_Store
 
 ### Media Dir ###
-/DECASE
 .env.properties
 
 ### DS_Store
