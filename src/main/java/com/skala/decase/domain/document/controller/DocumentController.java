@@ -39,7 +39,7 @@ public class DocumentController {
     // }
 
     @PostMapping("/documents/{docId}/downloads")
-    public ResponseEntity<byte[]> downloadDocument(@PathVariable Long docId) throws Exception {
+    public ResponseEntity<byte[]> downloadDocument(@PathVariable String docId) throws Exception {
         return documentService.downloadDocument(docId);
     }
 }

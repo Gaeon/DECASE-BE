@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
-public interface DocumentRepository extends JpaRepository<Document, Long> {
+public interface DocumentRepository extends JpaRepository<Document, String> {
 	@Query("SELECT d.docId FROM Document d WHERE d.docId LIKE CONCAT(:prefix, '-%') ORDER BY d.docId DESC LIMIT 1")
 	Optional<String> findLatestDocIdByPrefix(@Param("prefix") String prefix);
 }

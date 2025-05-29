@@ -102,7 +102,7 @@ public class DocumentService {
 
             documentRepository.save(doc);
 
-            responses.add(new DocumentResponse(doc.getDocId(), doc.getName());
+            responses.add(new DocumentResponse(doc.getDocId(), doc.getName()));
         }
 
         return responses;
