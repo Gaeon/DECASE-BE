@@ -35,3 +35,13 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### env ###
+.env
+.env.properties
+
+### MacOS ###
+.DS_Store
+
+### Media Dir ###
+/DECASE
