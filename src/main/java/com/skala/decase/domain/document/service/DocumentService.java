@@ -9,13 +9,13 @@ import com.skala.decase.domain.member.exception.MemberException;
 import com.skala.decase.domain.member.repository.MemberRepository;
 import com.skala.decase.domain.project.domain.Project;
 
+import com.skala.decase.domain.project.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -67,7 +67,7 @@ public class DocumentService {
     }
 
     // 사용자 업로드
-    public List<DocumentResponse> uploadDocuments(Long projectId, List<MultipartFile> files, List<Integer> types) throws IOException {
+    public List<DocumentResponse> uploadDocuments(Long projectId, Long memberId, List<MultipartFile> files, List<Integer> types) throws IOException {
         if (files.size() != types.size()) {
 			throw new DocumentException("파일 수와 타입 수가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
