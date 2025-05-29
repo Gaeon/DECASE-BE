@@ -37,4 +37,13 @@ out/
 .vscode/
 
 ### env ###
-.env
+.env.properties
+
+### DS_Store
+.DS_Store
+._.DS_Store
+**/DS_Store
+**/._.DS_Store
+
+### Media
+DECASE

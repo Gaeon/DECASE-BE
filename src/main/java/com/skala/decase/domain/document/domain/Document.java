@@ -1,5 +1,6 @@
 package com.skala.decase.domain.document.domain;
 
+import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.requirement.domain.RequirementDocument;
 import jakarta.persistence.Column;
@@ -12,6 +13,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
