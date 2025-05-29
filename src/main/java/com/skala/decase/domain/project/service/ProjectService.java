@@ -9,7 +9,7 @@ import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.exception.ProjectException;
 import com.skala.decase.domain.project.mapper.MemberProjectMapper;
 import com.skala.decase.domain.project.mapper.ProjectMapper;
-import com.skala.decase.domain.project.repository.MemberProjectRepository;
+import com.skala.decase.domain.member.repository.MemberProjectRepository;
 import com.skala.decase.domain.project.repository.ProjectRepository;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
