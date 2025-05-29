@@ -25,11 +25,12 @@ public class DocumentController {
     @PostMapping(value = "/projects/{projectId}/documents/uploads", consumes = "multipart/form-data")
     public ResponseEntity<List<DocumentResponse>> uploadDocuments(
             @PathVariable Long projectId,
+            @RequestParam Long memberId,
             @RequestPart("files") List<MultipartFile> files,
             @RequestPart("types") String typesJson
     ) throws Exception {
         List<Integer> types = objectMapper.readValue(typesJson, new TypeReference<>() {});
-        return ResponseEntity.ok(documentService.uploadDocuments(projectId, files, types));
+        return ResponseEntity.ok(documentService.uploadDocuments(projectId, memberId, files, types));
     }
 
     // @DeleteMapping("/{docId}")
@@ -39,7 +40,7 @@ public class DocumentController {
     // }
 
     @PostMapping("/documents/{docId}/downloads")
-    public ResponseEntity<byte[]> downloadDocument(@PathVariable Long docId) throws Exception {
+    public ResponseEntity<byte[]> downloadDocument(@PathVariable String docId) throws Exception {
         return documentService.downloadDocument(docId);
     }
 }
