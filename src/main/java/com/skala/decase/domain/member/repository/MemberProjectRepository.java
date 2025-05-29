@@ -1,6 +1,8 @@
 package com.skala.decase.domain.member.repository;
 
+import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.project.domain.MemberProject;
+import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.domain.ProjectStatus;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -12,6 +14,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MemberProjectRepository extends JpaRepository<MemberProject, Long> {
+
+    // 특정 회원이 특정 프로젝트에 관리자 권한이 있는지 확인
+    @Query("SELECT COUNT(mp) > 0 FROM MemberProject mp WHERE mp.project=:project AND mp.member = :member AND mp.isAdmin = true")
+    boolean existsAdminPermission(Project project, Member member);
 
     @Query("SELECT mp FROM MemberProject mp WHERE mp.project.projectId = :projectId")
     List<MemberProject> findByProjectId(@Param("projectId") Long projectId);
@@ -104,4 +110,5 @@ public interface MemberProjectRepository extends JpaRepository<MemberProject, Lo
                                                     @Param("status") ProjectStatus status,
                                                     @Param("proposalPM") String proposalPM,
                                                     Pageable pageable);
+
 }

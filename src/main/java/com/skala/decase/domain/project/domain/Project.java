@@ -87,4 +87,9 @@ public class Project {
         this.documents = new ArrayList<>();
         this.requirements = new ArrayList<>();
     }
+
+    //프로젝트 상태 변경
+    public void updateStatus(ProjectStatus status) {
+        this.status = status;
+    }
 }

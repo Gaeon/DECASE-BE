@@ -31,6 +31,15 @@ public class ProjectService {
     private final MemberProjectMapper memberProjectMapper;
 
     /**
+     * 프로젝트 존재 확인
+     */
+    public Project findByProjectId(Long projectId) {
+        return projectRepository.findById(projectId)
+                .orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
+
+    }
+
+    /**
      * 프로젝트 생성
      *
      * @param request
