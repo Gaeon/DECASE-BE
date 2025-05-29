@@ -16,7 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "company")
+@Table(name = "TM_COMPANIES")
 @Getter
 @NoArgsConstructor
 public class Company {

@@ -1,13 +1,11 @@
 package com.skala.decase.domain.document.domain;
 
-import com.skala.decase.domain.doc_type.domain.DocType;
+import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.requirement.domain.RequirementDocument;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -19,15 +17,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "document")
+@Table(name = "TM_DOCUMENTS")
 @Getter
 @NoArgsConstructor
 public class Document {
 
+    /**
+     * doc_id 규칙
+     * - rfp 파일: RFP-{숫자}
+     * - 회의록 음성 : MOMV-{숫자}
+     * - 회의록 문서 : MOMD-{숫자}
+     * - 추가 파일 : EXTRA-{숫자}
+     * - 요구사항 정의서 : REQ-{숫자}
+     * - 조견표 : QFS-{숫자}
+     * - 매트릭스 : MATRIX-{숫자}
+     */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "doc_id")
-    private long docId;
+    private String docId;
 
     @Column(name = "path", length = 1000)
     private String path;
@@ -44,8 +51,8 @@ public class Document {
     private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "doc_type_id", insertable = false, updatable = false)
-    private DocType docType;
+    @JoinColumn(name = "member_id", insertable = false, updatable = false)
+    private Member createdBy;
 
     @OneToMany(mappedBy = "document", fetch = FetchType.LAZY)
     private List<RequirementDocument> requirementDocuments;

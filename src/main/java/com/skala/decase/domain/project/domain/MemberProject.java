@@ -16,7 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "member_project")
+@Table(name = "TD_MEMBER_PROJECTS")
 @Getter
 @NoArgsConstructor
 public class MemberProject {
@@ -28,6 +28,8 @@ public class MemberProject {
 
     @Enumerated(EnumType.STRING)
     private Permission permission;
+
+    private boolean isAdmin;
 
     // 외래키 관계
     @ManyToOne(fetch = FetchType.LAZY)

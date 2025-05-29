@@ -13,12 +13,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "project")
+@Table(name = "TM_PROJECTS")
 @Getter
 @NoArgsConstructor
 public class Project {
@@ -31,15 +32,26 @@ public class Project {
     @Column(name = "name", length = 100)
     private String name;
 
-    @Column(name = "domain_name", length = 100)
-    private String domainName;
+    private long scale;  //프로젝트 규모
 
-    private LocalDateTime createdDate;
+    private Date startDate;  //프로젝트 시작일
 
-    private int versionCount;
+    private Date endDate;  //프로젝트 종료일
+
+    @Column(name = "description", length = 1000)
+    private String description;  //설명
+
+    @Column(name = "proposal_pm", length = 100)
+    private String proposalPM;  //제안 PM
+
+    private int revisionCount;
 
     @Enumerated(EnumType.STRING)
     private ProjectStatus status;
+
+    private LocalDateTime createdDate;
+
+    private LocalDateTime modifiedDate;
 
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
     private List<MemberProject> membersProjects;
