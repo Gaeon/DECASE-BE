@@ -27,10 +27,13 @@ public class AuthService {
     private final CompanyRepository companyRepository;
     private final DepartmentRepository departmentRepository;
 
+    private final MemberService memberService;
+
     private final MemberMapper memberMapper;
 
     /**
      * 회원가입
+     *
      * @param request 회원가입 요청 객체
      */
     @Transactional
@@ -48,11 +51,13 @@ public class AuthService {
 
     /**
      * 로그인
+     *
      * @param request 로그인 요청 객체
      * @return member 사용자 객체
      */
     public MemberResponse login(LogInRequest request) {
-        Member member = memberRepository.findById(request.id())
+        // 아이디로 사용자 찾기
+        Member member = memberRepository.findByMemberId(request.id())
                 .orElseThrow(() -> new MemberException("해당 사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
         if (!member.getPassword().equals(request.password())) {
