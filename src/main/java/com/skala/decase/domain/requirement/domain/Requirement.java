@@ -27,12 +27,13 @@ public class Requirement {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "req_pk")
+    @Column(name = "req_pk", nullable = false)
     private long reqPk;
 
-    @Column(name = "req_id_code", length = 100)
+    @Column(name = "req_id_code", length = 100, nullable = false)
     private String reqIdCode;
 
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 1")
     private int revisionCount;
 
     @Enumerated(EnumType.STRING)
@@ -47,7 +48,7 @@ public class Requirement {
     @Column(name = "level_3", length = 100)
     private String level3;
 
-    @Column(name = "name", length = 100)
+    @Column(name = "name", length = 100, nullable = false)
     private String name;  // 요구사항 명
 
     @Column(name = "description", length = 5000)
@@ -59,10 +60,13 @@ public class Requirement {
     @Enumerated(EnumType.STRING)
     private Difficulty difficulty;
 
+    @Column(nullable = false)
     private LocalDateTime createdDate;
 
+    @Column(nullable = false)
     private LocalDateTime modifiedDate;
 
+    @Column(columnDefinition = "boolean DEFAULT false")
     private boolean isDeleted;  //요구사항 삭제 여부
 
     @ManyToOne(fetch = FetchType.LAZY)

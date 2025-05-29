@@ -25,10 +25,10 @@ public class Department {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "department_id")
+    @Column(name = "department_id", nullable = false)
     private long departmentId;
 
-    @Column(name = "name", length = 30)
+    @Column(name = "name", length = 30, nullable = false)
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)

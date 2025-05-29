@@ -33,21 +33,23 @@ public class Document {
      * - 매트릭스 : MATRIX-{숫자}
      */
     @Id
-    @Column(name = "doc_id")
+    @Column(name = "doc_id", nullable = false)
     private String docId;
 
-    @Column(name = "path", length = 1000)
+    @Column(name = "path", length = 1000, nullable = false)
     private String path;
 
-    @Column(name = "name", length = 100)
+    @Column(name = "name", length = 100, nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private LocalDateTime createdDate;
 
+    @Column(nullable = false)
     private boolean isMemberUpload;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", insertable = false, updatable = false)
+    @JoinColumn(name = "project_id", nullable = false)
     private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY)
