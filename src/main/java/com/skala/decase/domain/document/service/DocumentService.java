@@ -1,8 +1,5 @@
 package com.skala.decase.domain.document.service;
 
-import com.skala.decase.domain.doc_type.domain.DocType;
-import com.skala.decase.domain.doc_type.exception.DocTypeException;
-import com.skala.decase.domain.doc_type.repository.DocTypeRepository;
 import com.skala.decase.domain.document.domain.Document;
 import com.skala.decase.domain.document.controller.dto.DocumentResponse;
 import com.skala.decase.domain.document.exception.DocumentException;
@@ -23,17 +20,47 @@ import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class DocumentService {
 
     private final DocumentRepository documentRepository;
-    private final DocTypeRepository docTypeRepository;
 	private final ProjectRepository projectRepository;
 
 	// 로컬 파일 업로드 경로
     private final String BASE_UPLOAD_PATH = "DECASE/upload";
+
+    // 문서 타입 매핑
+    private static final Map<Integer, String> TYPE_PREFIX_MAP = Map.of(
+            1, "RFP",
+            2, "MOMV",
+            3, "MOMD",
+            4, "EXTRA",
+            5, "REQ",
+            6, "QFS",
+            7, "MATRIX"
+    );
+
+    // Doc ID 찾기
+    public String generateDocId(String typePrefix) {
+        Optional<String> latestIdOpt = documentRepository.findLatestDocIdByPrefix(typePrefix);
+        int nextNumber = 1;
+
+        if (latestIdOpt.isPresent()) {
+            String latestId = latestIdOpt.get();  // e.g. "RFP-000123"
+            String[] parts = latestId.split("-");
+            try {
+                nextNumber = Integer.parseInt(parts[1]) + 1;
+            } catch (NumberFormatException e) {
+                throw new IllegalStateException("Invalid docId format: " + latestId);
+            }
+        }
+
+        return String.format("%s-%06d", typePrefix, nextNumber);
+    }
 
     // 사용자 업로드
     public List<DocumentResponse> uploadDocuments(Long projectId, List<MultipartFile> files, List<Integer> types) throws IOException {
@@ -45,10 +72,12 @@ public class DocumentService {
 
         for (int i = 0; i < files.size(); i++) {
             MultipartFile file = files.get(i);
-            int type = types.get(i);
+            int iType = types.get(i);
 
-            DocType docType = docTypeRepository.findById(type)
-                    .orElseThrow(() -> new DocTypeException("유효하지 않은 문서 타입: " + type, HttpStatus.BAD_REQUEST));
+            if (iType < 1 || iType > 7) {
+                throw new DocumentException("유효하지 않은 문서 타입: " + iType, HttpStatus.BAD_REQUEST);
+            }
+
 			Project project = projectRepository.findById(projectId)											// ⚠️ 추후 projectRepository 보고 수정 필요할 수 있음!
 					.orElseThrow(() -> new DocumentException("유효하지 않은 프로젝트 ID: " + projectId, HttpStatus.NOT_FOUND));
 
@@ -64,16 +93,16 @@ public class DocumentService {
 
             // Document 저장
             Document doc = new Document();
+            doc.setDocId(generateDocId(TYPE_PREFIX_MAP.get(iType)));
             doc.setName(file.getOriginalFilename());
             doc.setPath(filePath.toString());
             doc.setCreatedDate(LocalDateTime.now());
             doc.setMemberUpload(true);
             doc.setProject(project);
-            doc.setDocType(docType);
 
             documentRepository.save(doc);
 
-            responses.add(new DocumentResponse(doc.getDocId(), doc.getName(), docType.getName()));
+            responses.add(new DocumentResponse(doc.getDocId(), doc.getName());
         }
 
         return responses;
@@ -86,7 +115,7 @@ public class DocumentService {
     // }
 
     // 사용자 업로드 파일 다운로드
-    public ResponseEntity<byte[]> downloadDocument(Long docId) throws IOException {
+    public ResponseEntity<byte[]> downloadDocument(String docId) throws IOException {
         Document doc = documentRepository.findById(docId)
 				.orElseThrow(() -> new DocumentException("문서를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
