@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import lombok.Getter;
@@ -68,4 +69,27 @@ public class Project {
 
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
     private List<Requirement> requirements;
+
+    // 프로젝트 생성자
+    public Project(String name, Long scale, Date startDate, Date endDate,
+                   String description, String proposalPM, LocalDateTime createdDate, LocalDateTime modifiedDate) {
+        this.name = name;
+        this.scale = scale;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.description = description;
+        this.proposalPM = proposalPM;
+        this.revisionCount = 1;
+        this.status = ProjectStatus.NOT_STARTED;
+        this.createdDate = createdDate;
+        this.modifiedDate = modifiedDate;
+        this.membersProjects = new ArrayList<>();
+        this.documents = new ArrayList<>();
+        this.requirements = new ArrayList<>();
+    }
+
+    //프로젝트 상태 변경
+    public void updateStatus(ProjectStatus status) {
+        this.status = status;
+    }
 }

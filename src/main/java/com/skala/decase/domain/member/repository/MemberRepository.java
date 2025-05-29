@@ -10,5 +10,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MemberRepository extends JpaRepository<Member, Long> {
     @Query("select m from Member m where m.id =:id")
-    Optional<Member> findById(@Param("id") String id);
+    Optional<Member> findByMemberId(@Param("id") String id);
 }
