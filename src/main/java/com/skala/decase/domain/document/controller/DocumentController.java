@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skala.decase.domain.document.controller.dto.DocumentResponse;
 import com.skala.decase.domain.document.service.DocumentService;
 
+import com.skala.decase.domain.member.domain.Member;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,11 +26,12 @@ public class DocumentController {
     @PostMapping(value = "/projects/{projectId}/documents/uploads", consumes = "multipart/form-data")
     public ResponseEntity<List<DocumentResponse>> uploadDocuments(
             @PathVariable Long projectId,
+            @RequestParam Long memberId,
             @RequestPart("files") List<MultipartFile> files,
             @RequestPart("types") String typesJson
     ) throws Exception {
         List<Integer> types = objectMapper.readValue(typesJson, new TypeReference<>() {});
-        return ResponseEntity.ok(documentService.uploadDocuments(projectId, files, types));
+        return ResponseEntity.ok(documentService.uploadDocuments(projectId, memberId, files, types));
     }
 
     // @DeleteMapping("/{docId}")

@@ -4,9 +4,12 @@ import com.skala.decase.domain.document.domain.Document;
 import com.skala.decase.domain.document.controller.dto.DocumentResponse;
 import com.skala.decase.domain.document.exception.DocumentException;
 import com.skala.decase.domain.document.repository.DocumentRepository;
+import com.skala.decase.domain.member.domain.Member;
+import com.skala.decase.domain.member.exception.MemberException;
+import com.skala.decase.domain.member.repository.MemberRepository;
 import com.skala.decase.domain.project.domain.Project;
-import com.skala.decase.domain.project.repository.ProjectRepository;
 
+import com.skala.decase.domain.project.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -43,6 +46,7 @@ public class DocumentService {
             6, "QFS",
             7, "MATRIX"
     );
+    private final MemberRepository memberRepository;
 
     // Doc ID 찾기
     public String generateDocId(String typePrefix) {
@@ -63,7 +67,7 @@ public class DocumentService {
     }
 
     // 사용자 업로드
-    public List<DocumentResponse> uploadDocuments(Long projectId, List<MultipartFile> files, List<Integer> types) throws IOException {
+    public List<DocumentResponse> uploadDocuments(Long projectId, Long memberId, List<MultipartFile> files, List<Integer> types) throws IOException {
         if (files.size() != types.size()) {
 			throw new DocumentException("파일 수와 타입 수가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
@@ -78,9 +82,10 @@ public class DocumentService {
                 throw new DocumentException("유효하지 않은 문서 타입: " + iType, HttpStatus.BAD_REQUEST);
             }
 
-			Project project = projectRepository.findById(projectId)											// ⚠️ 추후 projectRepository 보고 수정 필요할 수 있음!
+			Project project = projectRepository.findById(projectId)
 					.orElseThrow(() -> new DocumentException("유효하지 않은 프로젝트 ID: " + projectId, HttpStatus.NOT_FOUND));
-
+            Member member = memberRepository.findById(memberId)
+                    .orElseThrow(() -> new MemberException("유효하지 않은 사용자 ID: " + memberId, HttpStatus.NOT_FOUND));
             // 파일 저장
             String fileName = System.currentTimeMillis() + "_" + StringUtils.cleanPath(file.getOriginalFilename());
             Path uploadPath = Paths.get(BASE_UPLOAD_PATH);
@@ -98,6 +103,7 @@ public class DocumentService {
             doc.setPath(filePath.toString());
             doc.setCreatedDate(LocalDateTime.now());
             doc.setMemberUpload(true);
+            doc.setCreatedBy(member);
             doc.setProject(project);
 
             documentRepository.save(doc);
