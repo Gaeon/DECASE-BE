@@ -1,11 +1,14 @@
 package com.skala.decase.domain.requirement.domain;
 
+import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.project.domain.Project;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -17,17 +20,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "requirement")
+@Table(name = "TD_REQUIREMNETS")
 @Getter
 @NoArgsConstructor
 public class Requirement {
 
     @Id
-    @Column(name = "req_pk")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "req_pk", nullable = false)
     private long reqPk;
 
-    @Column(name = "id", length = 100)
-    private String id;
+    @Column(name = "req_id_code", length = 100, nullable = false)
+    private String reqIdCode;
+
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 1")
+    private int revisionCount;
 
     @Enumerated(EnumType.STRING)
     private RequirementType type;
@@ -41,11 +48,11 @@ public class Requirement {
     @Column(name = "level_3", length = 100)
     private String level3;
 
-    @Column(name = "name", length = 100)
-    private String name;
+    @Column(name = "name", length = 100, nullable = false)
+    private String name;  // 요구사항 명
 
     @Column(name = "description", length = 5000)
-    private String description;
+    private String description;  //요구사항 설명
 
     @Enumerated(EnumType.STRING)
     private Priority priority;
@@ -53,23 +60,26 @@ public class Requirement {
     @Enumerated(EnumType.STRING)
     private Difficulty difficulty;
 
-    private int relPage;
-
-    private String relSentence;
-
+    @Column(nullable = false)
     private LocalDateTime createdDate;
 
+    @Column(nullable = false)
     private LocalDateTime modifiedDate;
 
-    private int version;
-
-    private boolean isDeleted;
+    @Column(columnDefinition = "boolean DEFAULT false")
+    private boolean isDeleted;  //요구사항 삭제 여부
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", insertable = false, updatable = false)
+    @JoinColumn(name = "project_id", nullable = false)
     private Project project;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member createdBy;
+
+    private String modReason;   //수정 사유
 
     // 양방향 관계
     @OneToMany(mappedBy = "requirement", fetch = FetchType.LAZY)
-    private List<RequirementDocument> requirementDocuments;
+    private List<RequirementDocument> requirementDocuments;  //출처
 }
