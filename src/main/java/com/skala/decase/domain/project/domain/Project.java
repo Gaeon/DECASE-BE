@@ -13,33 +13,52 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "project")
+@Table(name = "TM_PROJECTS")
 @Getter
 @NoArgsConstructor
 public class Project {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "project_id")
+    @Column(name = "project_id", nullable = false)
     private long projectId;
 
-    @Column(name = "name", length = 100)
+    @Column(name = "name", length = 100, nullable = false)
     private String name;
 
-    @Column(name = "domain_name", length = 100)
-    private String domainName;
+    @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private long scale;  //프로젝트 규모
 
+    @Column(nullable = false)
+    private Date startDate;  //프로젝트 시작일
+
+    @Column(nullable = false)
+    private Date endDate;  //프로젝트 종료일
+
+    @Column(name = "description", length = 1000, nullable = false)
+    private String description;  //설명
+
+    @Column(name = "proposal_pm", length = 100)
+    private String proposalPM;  //제안 PM
+
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 1")
+    private int revisionCount;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ProjectStatus status = ProjectStatus.NOT_STARTED;
+
+    @Column(nullable = false)
     private LocalDateTime createdDate;
 
-    private int versionCount;
-
-    @Enumerated(EnumType.STRING)
-    private ProjectStatus status;
+    @Column(nullable = false)
+    private LocalDateTime modifiedDate;
 
     @OneToMany(mappedBy = "project", fetch = FetchType.LAZY)
     private List<MemberProject> membersProjects;
