@@ -1,5 +1,6 @@
 package com.skala.decase.domain.document.service;
 
+import com.skala.decase.domain.document.controller.dto.DocumentDetailResponse;
 import com.skala.decase.domain.document.domain.Document;
 import com.skala.decase.domain.document.controller.dto.DocumentResponse;
 import com.skala.decase.domain.document.exception.DocumentException;
@@ -131,5 +132,24 @@ public class DocumentService {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getName() + "\"")
                 .body(content);
+    }
+
+    // 파일 상세 정보 조회
+    public ResponseEntity<DocumentDetailResponse> getDocument(String docId) throws IOException {
+        Document doc = documentRepository.findById(docId)
+                .orElseThrow(() -> new DocumentException("문서를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+
+        DocumentDetailResponse docDetailResponse = DocumentDetailResponse.builder()
+                .docId(doc.getDocId())
+                .name(doc.getName())
+                .createdDate(doc.getCreatedDate())
+                .build();
+
+        if (doc.isMemberUpload()) {
+            docDetailResponse.setCreatedBy(doc.getCreatedBy().getName());
+        } else {
+            docDetailResponse.setCreatedBy("DECASE");
+        }
+        return new ResponseEntity<>(docDetailResponse, HttpStatus.OK);
     }
 }

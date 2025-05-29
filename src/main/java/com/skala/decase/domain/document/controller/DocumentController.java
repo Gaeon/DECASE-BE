@@ -2,6 +2,7 @@ package com.skala.decase.domain.document.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.skala.decase.domain.document.controller.dto.DocumentDetailResponse;
 import com.skala.decase.domain.document.controller.dto.DocumentResponse;
 import com.skala.decase.domain.document.service.DocumentService;
 
@@ -43,5 +44,10 @@ public class DocumentController {
     @PostMapping("/documents/{docId}/downloads")
     public ResponseEntity<byte[]> downloadDocument(@PathVariable String docId) throws Exception {
         return documentService.downloadDocument(docId);
+    }
+
+    @GetMapping("/documents/{docId}")
+    public ResponseEntity<DocumentDetailResponse> getDocument(@PathVariable String docId) throws Exception {
+        return documentService.getDocument(docId);
     }
 }
