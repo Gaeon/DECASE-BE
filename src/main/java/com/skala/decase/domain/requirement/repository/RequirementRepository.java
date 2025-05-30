@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface RequirementRepository extends JpaRepository<Requirement, Long> {
 	List<Requirement> findByProject_AndRevisionCountAndIsDeletedFalse(Project project, int revisionCount);
+	List<Requirement> findByProject_AndIsDeletedFalse(Project project);
 }
