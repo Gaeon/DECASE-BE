@@ -4,6 +4,7 @@ import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.exception.ProjectException;
 import com.skala.decase.domain.project.repository.ProjectRepository;
 import com.skala.decase.domain.requirement.controller.dto.RequirementDto;
+import com.skala.decase.domain.requirement.controller.dto.RequirementRevisionDto;
 import com.skala.decase.domain.requirement.domain.Requirement;
 import com.skala.decase.domain.requirement.repository.RequirementRepository;
 import lombok.RequiredArgsConstructor;
@@ -84,26 +85,26 @@ public class RequirementService {
 	}
 
 	// 요구사항 버전 조회
-	public Map<String, String> getRequirementVersions(Long projectId) {
+	public List<RequirementRevisionDto> getRequirementRevisions(Long projectId) {
 		Project project = projectRepository.findById(projectId)
 				.orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
 
 		Integer maxRevision = requirementRepository.getMaxRevisionCount(project);
 
-		Map<String, String> revisionMap = new HashMap<>();
 		String prefix = "요구사항 정의서_";
 		int digitCount = String.valueOf(maxRevision).length();
 		String format = "%0" + digitCount + "d";
 
+		List<RequirementRevisionDto> versionList = new ArrayList<>();
 		for (int i = 1; i <= maxRevision; i++) {
 			int finalI = i;
 			Optional<Requirement> requirementOpt = requirementRepository.findFirstByProjectAndRevisionCount(project, i);
 			requirementOpt.ifPresent(req -> {
-				String date = req.getCreatedDate().toLocalDate().toString();
 				String label = prefix + String.format(format, finalI);
-				revisionMap.put(label, date);
+				String date = req.getCreatedDate().toLocalDate().toString();
+				versionList.add(new RequirementRevisionDto(label, finalI, date));
 			});
 		}
-		return revisionMap;
+		return versionList;
 	}
 }

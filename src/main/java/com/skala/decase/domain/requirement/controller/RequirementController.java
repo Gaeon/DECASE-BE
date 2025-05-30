@@ -1,6 +1,7 @@
 package com.skala.decase.domain.requirement.controller;
 
 import com.skala.decase.domain.requirement.controller.dto.RequirementDto;
+import com.skala.decase.domain.requirement.controller.dto.RequirementRevisionDto;
 import com.skala.decase.domain.requirement.domain.Requirement;
 import com.skala.decase.domain.requirement.service.RequirementService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -8,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -63,8 +63,9 @@ public class RequirementController {
 	}
 
 	@GetMapping("/{projectId}/revision")
-	public ResponseEntity<Map<String, String>> getRequirementVersion(
+	public ResponseEntity<List<RequirementRevisionDto>> getRequirementVersion(
 			@PathVariable Long projectId) {
-		return ResponseEntity.ok(repositoryService.getRequirementVersions(projectId));
+		List<RequirementRevisionDto> revisions =repositoryService.getRequirementRevisions(projectId);
+		return ResponseEntity.ok(revisions);
 	}
 }
