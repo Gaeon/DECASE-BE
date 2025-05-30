@@ -41,10 +41,10 @@ out/
 .env.properties
 
 ### Media Dir ###
-DECASE
+DECASE/upload
 
 ### DS_Store
 .DS_Store
 ._.DS_Store
-**/DS_Store
+**/.DS_Store
 **/._.DS_Store
