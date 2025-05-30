@@ -82,4 +82,28 @@ public class RequirementService {
 				.map(RequirementDto::fromEntity)
 				.toList();
 	}
+
+	// 요구사항 버전 조회
+	public Map<String, String> getRequirementVersions(Long projectId) {
+		Project project = projectRepository.findById(projectId)
+				.orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
+
+		Integer maxRevision = requirementRepository.getMaxRevisionCount(project);
+
+		Map<String, String> revisionMap = new HashMap<>();
+		String prefix = "요구사항 정의서_";
+		int digitCount = String.valueOf(maxRevision).length();
+		String format = "%0" + digitCount + "d";
+
+		for (int i = 1; i <= maxRevision; i++) {
+			int finalI = i;
+			Optional<Requirement> requirementOpt = requirementRepository.findFirstByProjectAndRevisionCount(project, i);
+			requirementOpt.ifPresent(req -> {
+				String date = req.getCreatedDate().toLocalDate().toString();
+				String label = prefix + String.format(format, finalI);
+				revisionMap.put(label, date);
+			});
+		}
+		return revisionMap;
+	}
 }

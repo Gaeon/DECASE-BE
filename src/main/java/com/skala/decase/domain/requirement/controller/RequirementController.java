@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -59,5 +60,11 @@ public class RequirementController {
 				projectId, query, level1, level2, level3, type, difficulty, priority, docType);
 
 		return ResponseEntity.ok(result);
+	}
+
+	@GetMapping("/{projectId}/revision")
+	public ResponseEntity<Map<String, String>> getRequirementVersion(
+			@PathVariable Long projectId) {
+		return ResponseEntity.ok(repositoryService.getRequirementVersions(projectId));
 	}
 }
