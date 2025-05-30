@@ -6,7 +6,6 @@ import com.skala.decase.domain.document.controller.dto.DocumentDetailResponse;
 import com.skala.decase.domain.document.controller.dto.DocumentResponse;
 import com.skala.decase.domain.document.service.DocumentService;
 
-import com.skala.decase.domain.member.domain.Member;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +46,13 @@ public class DocumentController {
     }
 
     @GetMapping("/documents/{docId}")
-    public ResponseEntity<DocumentDetailResponse> getDocument(@PathVariable String docId) throws Exception {
-        return documentService.getDocument(docId);
+    public ResponseEntity<DocumentDetailResponse> getDocumentDetail(@PathVariable String docId) throws Exception {
+        return documentService.getDocumentDetails(docId);
+    }
+
+    // 요구사항 리비전에 따른 문서 목록
+    @GetMapping("/projects/{projectId}/document/uploads")
+    public ResponseEntity<List<DocumentResponse>> getDocumentUploads(@PathVariable Long projectId) throws Exception {
+        return documentService.getDocumentUploads(projectId);
     }
 }

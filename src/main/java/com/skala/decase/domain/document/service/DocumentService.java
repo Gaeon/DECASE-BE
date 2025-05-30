@@ -10,6 +10,7 @@ import com.skala.decase.domain.member.exception.MemberException;
 import com.skala.decase.domain.member.repository.MemberRepository;
 import com.skala.decase.domain.project.domain.Project;
 
+import com.skala.decase.domain.project.exception.ProjectException;
 import com.skala.decase.domain.project.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -135,7 +137,7 @@ public class DocumentService {
     }
 
     // 파일 상세 정보 조회
-    public ResponseEntity<DocumentDetailResponse> getDocument(String docId) throws IOException {
+    public ResponseEntity<DocumentDetailResponse> getDocumentDetails(String docId) throws IOException {
         Document doc = documentRepository.findById(docId)
                 .orElseThrow(() -> new DocumentException("문서를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
@@ -151,5 +153,19 @@ public class DocumentService {
             docDetailResponse.setCreatedBy("DECASE");
         }
         return new ResponseEntity<>(docDetailResponse, HttpStatus.OK);
+    }
+
+    public ResponseEntity<List<DocumentResponse>> getDocumentUploads(Long projectId) throws IOException {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ProjectException("프로젝트를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+
+        // 해당 프로젝트의 모든 문서 조회 (사용자 업로드 문서만 필터링)
+        List<Document> documents = documentRepository.findAllByProjectAndIsMemberUploadTrue(project);
+
+        List<DocumentResponse> responseList = documents.stream()
+                .map(doc -> new DocumentResponse(doc.getDocId(), doc.getName()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseList);
     }
 }
