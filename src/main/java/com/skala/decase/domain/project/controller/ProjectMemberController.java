@@ -2,6 +2,7 @@ package com.skala.decase.domain.project.controller;
 
 import com.skala.decase.domain.project.controller.dto.request.CreateMemberProjectRequest;
 import com.skala.decase.domain.project.controller.dto.response.CreateMemberProjectResponse;
+import com.skala.decase.domain.project.controller.dto.response.JoinProjectResponse;
 import com.skala.decase.domain.project.service.ProjectInvitationService;
 import com.skala.decase.global.model.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,10 +26,17 @@ public class ProjectMemberController {
 
     @Operation(summary = "프로젝트 멤버 추가", description = "프로젝트 멤버 초대를 위한 API입니다.")
     @PostMapping("/{projectId}/members")
-    public ResponseEntity<ApiResponse<CreateMemberProjectResponse>> createProjectMember(@PathVariable("projectId") long projectId, @RequestBody CreateMemberProjectRequest request) {
+    public ResponseEntity<ApiResponse<CreateMemberProjectResponse>> createInvitation(@PathVariable("projectId") long projectId, @RequestBody CreateMemberProjectRequest request) {
         CreateMemberProjectResponse response = projectInvitationService.createInvitation(projectId, request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(response));
     }
 
+    @Operation(summary = "프로젝트 참여 수락", description = "토큰을 기반으로 프로젝트 참여.")
+    @GetMapping("/invitation")
+    public ResponseEntity<ApiResponse<JoinProjectResponse>> acceptInvitation(@RequestParam("token") String token) {
+        JoinProjectResponse response = projectInvitationService.accept(token);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created(response));
+    }
 }

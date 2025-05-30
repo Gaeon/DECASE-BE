@@ -2,11 +2,14 @@ package com.skala.decase.domain.project.service;
 
 import com.skala.decase.domain.project.controller.dto.request.CreateMemberProjectRequest;
 import com.skala.decase.domain.project.controller.dto.response.CreateMemberProjectResponse;
+import com.skala.decase.domain.project.controller.dto.response.JoinProjectResponse;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.domain.ProjectInvitation;
+import com.skala.decase.domain.project.exception.ProjectException;
 import com.skala.decase.domain.project.mapper.SuccessMapper;
 import com.skala.decase.domain.project.repository.ProjectInvitationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -35,5 +38,18 @@ public class ProjectInvitationService {
         projectInvitationRepository.save(projectInvitation);
 
         return successMapper.success();
+    }
+
+    public JoinProjectResponse accept(String token) {
+        ProjectInvitation projectInvitation = projectInvitationRepository.findByToken(token);
+        if (token == null) {
+            throw new ProjectException("토큰이 유효하지 않습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        if (projectInvitation.isExpired()) {
+            throw new ProjectException("초대 링크가 만료되었습니다.", HttpStatus.GONE);
+        }
+
+        return null;
     }
 }

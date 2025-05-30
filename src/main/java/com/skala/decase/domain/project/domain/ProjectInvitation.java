@@ -38,4 +38,8 @@ public class ProjectInvitation {
         this.permission = permission;
         this.project = project;
     }
+
+    public boolean isExpired() {
+        return expiryDate.isBefore(LocalDateTime.now());
+    }
 }
