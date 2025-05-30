@@ -7,12 +7,15 @@ import com.skala.decase.domain.department.domain.Department;
 import com.skala.decase.domain.department.exception.DepartmentException;
 import com.skala.decase.domain.department.repository.DepartmentRepository;
 import com.skala.decase.domain.member.controller.dto.request.DeleteRequest;
+import com.skala.decase.domain.member.controller.dto.request.DuplicationCheckRequest;
 import com.skala.decase.domain.member.controller.dto.request.LogInRequest;
 import com.skala.decase.domain.member.controller.dto.request.SignUpRequest;
 import com.skala.decase.domain.member.controller.dto.response.DeleteResponse;
+import com.skala.decase.domain.member.controller.dto.response.DuplicationCheckResponse;
 import com.skala.decase.domain.member.controller.dto.response.MemberResponse;
 import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.member.exception.MemberException;
+import com.skala.decase.domain.member.mapper.CheckDuplicationMapper;
 import com.skala.decase.domain.member.mapper.DeleteMapper;
 import com.skala.decase.domain.member.mapper.MemberMapper;
 import com.skala.decase.domain.member.repository.MemberRepository;
@@ -32,6 +35,7 @@ public class AuthService {
 
     private final MemberMapper memberMapper;
     private final DeleteMapper deleteMapper;
+    private final CheckDuplicationMapper checkDuplicationMapper;
 
     /**
      * 회원가입
@@ -78,5 +82,14 @@ public class AuthService {
         }
         memberRepository.delete(member);
         return deleteMapper.success();
+    }
+
+    public DuplicationCheckResponse checkDuplication(DuplicationCheckRequest request) {
+        Member member = memberRepository.findByMemberId(request.id())
+                .orElse(null);
+        if (member != null) {
+            return checkDuplicationMapper.failure();
+        }
+        return checkDuplicationMapper.success();
     }
 }
