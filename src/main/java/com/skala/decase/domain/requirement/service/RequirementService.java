@@ -3,6 +3,7 @@ package com.skala.decase.domain.requirement.service;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.exception.ProjectException;
 import com.skala.decase.domain.project.repository.ProjectRepository;
+import com.skala.decase.domain.requirement.controller.dto.RequirementDto;
 import com.skala.decase.domain.requirement.domain.Requirement;
 import com.skala.decase.domain.requirement.repository.RequirementRepository;
 import lombok.RequiredArgsConstructor;
@@ -51,5 +52,34 @@ public class RequirementService {
 		categoryMap.put("소분류", new ArrayList<>(level3Set));
 
 		return categoryMap;
+	}
+
+	public List<RequirementDto> getFilteredRequirements(Long projectId, String query,
+														String level1, String level2, String level3,
+														Integer type, Integer difficulty, Integer priority,
+														List<String> docTypes) {
+
+		Project project = projectRepository.findById(projectId)
+				.orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
+
+		List<Requirement> requirements = requirementRepository.findByProject_AndIsDeletedFalse(project);
+
+		// 스트림 필터링
+		return requirements.stream()
+				.filter(r -> query == null || r.getName().contains(query) || r.getDescription().contains(query))
+				.filter(r -> level1 == null || level1.equals(r.getLevel1()))
+				.filter(r -> level2 == null || level2.equals(r.getLevel2()))
+				.filter(r -> level3 == null || level3.equals(r.getLevel3()))
+				.filter(r -> type == null || r.getType().ordinal() == type)
+				.filter(r -> difficulty == null || r.getDifficulty().ordinal() == difficulty)
+				.filter(r -> priority == null || r.getPriority().ordinal() == priority)
+				.filter(r -> docTypes == null || r.getRequirementDocuments().stream()
+						.anyMatch(rd -> {
+							String docId= rd.getDocument().getDocId();
+							String prefix = docId.split("-")[0];
+							return docTypes.contains(prefix);
+						}))
+				.map(RequirementDto::fromEntity)
+				.toList();
 	}
 }

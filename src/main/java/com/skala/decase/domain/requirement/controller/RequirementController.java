@@ -42,4 +42,22 @@ public class RequirementController {
 			@PathVariable Long projectId) {
 		return ResponseEntity.ok(repositoryService.getRequirementCategory(projectId));
 	}
+
+	// 프로젝트의 쿼리 및 카테고리 별 검색
+	@GetMapping("/{projectId}/documents/search")
+	public ResponseEntity<List<RequirementDto>> getGeneratedRequirements(
+			@PathVariable Long projectId,
+			@RequestParam(required = false) String query,
+			@RequestParam(required = false) String level1,
+			@RequestParam(required = false) String level2,
+			@RequestParam(required = false) String level3,
+			@RequestParam(required = false) Integer type,
+			@RequestParam(required = false) Integer difficulty,
+			@RequestParam(required = false) Integer priority,
+			@RequestParam(required = false) List<String> docType) {
+		List<RequirementDto> result = repositoryService.getFilteredRequirements(
+				projectId, query, level1, level2, level3, type, difficulty, priority, docType);
+
+		return ResponseEntity.ok(result);
+	}
 }
