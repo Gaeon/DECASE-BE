@@ -41,4 +41,12 @@ public class ProjectController {
             @RequestBody CreateProjectRequest request) {
         return ResponseEntity.ok(projectService.editProject(projectId, request));
     }
+
+    // 프로젝트 삭제
+    @DeleteMapping("{projectId}")
+    public ResponseEntity<String> deleteProject(
+            @PathVariable Long projectId){
+        projectService.deleteProject(projectId);
+        return ResponseEntity.ok("프로젝트가 삭제되었습니다.");
+    }
 }

@@ -13,6 +13,10 @@ import com.skala.decase.domain.project.mapper.ProjectMapper;
 import com.skala.decase.domain.member.repository.MemberProjectRepository;
 import com.skala.decase.domain.project.repository.ProjectRepository;
 import java.time.LocalDateTime;
+import java.util.List;
+
+import com.skala.decase.domain.requirement.domain.Requirement;
+import com.skala.decase.domain.requirement.repository.RequirementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -101,4 +105,10 @@ public class ProjectService {
         return EditProjectResponseDto.fromEntity(saved);
     }
 
+    @Transactional
+    public String deleteProject(Long projectId) {
+        Project project = findByProjectId(projectId);
+        projectRepository.delete(project);
+        return "프로젝트가 삭제되었습니다.";
+    }
 }
