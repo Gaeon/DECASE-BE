@@ -16,12 +16,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import lombok.Getter;
+
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "TM_PROJECTS")
-@Getter
+@Data
 @NoArgsConstructor
 public class Project {
 

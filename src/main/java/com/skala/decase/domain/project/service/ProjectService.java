@@ -3,6 +3,7 @@ package com.skala.decase.domain.project.service;
 import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.member.service.MemberService;
 import com.skala.decase.domain.project.controller.dto.request.CreateProjectRequest;
+import com.skala.decase.domain.project.controller.dto.response.EditProjectResponseDto;
 import com.skala.decase.domain.project.controller.dto.response.ProjectResponse;
 import com.skala.decase.domain.project.domain.MemberProject;
 import com.skala.decase.domain.project.domain.Project;
@@ -78,6 +79,26 @@ public class ProjectService {
         if (request.scale() < 0) {
             throw new ProjectException("프로젝트 규모는 0 이상이어야 합니다.", HttpStatus.BAD_REQUEST);
         }
+    }
+
+    // 프로젝트 수정
+    @Transactional
+    public EditProjectResponseDto editProject(Long projectId, CreateProjectRequest request) {
+        // 프로젝트 존재 확인
+        Project editProject = findByProjectId(projectId);
+        // 유효성 검증
+        validateProjectCreateRequest(request);
+
+        editProject.setName(request.name());
+        editProject.setProposalPM(request.proposalPM());
+        editProject.setDescription(request.description());
+        editProject.setScale(request.scale());
+        editProject.setStartDate(request.startDate());
+        editProject.setEndDate(request.endDate());
+        editProject.setModifiedDate(LocalDateTime.now()); // 수정 시각 갱신
+
+        Project saved = projectRepository.save(editProject);
+        return EditProjectResponseDto.fromEntity(saved);
     }
 
 }
