@@ -6,21 +6,26 @@ import com.skala.decase.domain.member.service.MemberService;
 import com.skala.decase.domain.project.controller.dto.request.CreateMemberProjectRequest;
 import com.skala.decase.domain.project.controller.dto.response.CreateMemberProjectResponse;
 import com.skala.decase.domain.project.controller.dto.response.JoinProjectResponse;
+import com.skala.decase.domain.project.controller.dto.response.MemberProjectResponse;
 import com.skala.decase.domain.project.domain.MemberProject;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.domain.ProjectInvitation;
 import com.skala.decase.domain.project.exception.ProjectException;
+import com.skala.decase.domain.project.mapper.ProjectMemberMapper;
 import com.skala.decase.domain.project.mapper.SuccessMapper;
 import com.skala.decase.domain.project.repository.ProjectInvitationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ProjectInvitationService {
 
     private final SuccessMapper successMapper;
+    private final ProjectMemberMapper projectMemberMapper;
     private final ProjectInvitationRepository projectInvitationRepository;
     private final MemberProjectRepository memberProjectRepository;
     private final ProjectService projectService;
@@ -82,5 +87,12 @@ public class ProjectInvitationService {
         mailService.sendWelcomeMail(newMember, projectInvitation.getProject());
 
         return successMapper.isJoinSuccess(true, projectInvitation);
+    }
+
+    public List<MemberProjectResponse> findAllByProject(long projectId) {
+        return memberProjectRepository.findAll()
+                .stream()
+                .filter(memberProject -> memberProject.getProject().getProjectId() == projectId)
+                .map(projectMemberMapper::toResponse).toList();
     }
 }

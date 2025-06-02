@@ -1,8 +1,11 @@
 package com.skala.decase.domain.project.controller;
 
+import com.skala.decase.domain.member.controller.dto.response.MemberResponse;
 import com.skala.decase.domain.project.controller.dto.request.CreateMemberProjectRequest;
 import com.skala.decase.domain.project.controller.dto.response.CreateMemberProjectResponse;
 import com.skala.decase.domain.project.controller.dto.response.JoinProjectResponse;
+import com.skala.decase.domain.project.controller.dto.response.MemberProjectResponse;
+import com.skala.decase.domain.project.domain.MemberProject;
 import com.skala.decase.domain.project.service.ProjectInvitationService;
 import com.skala.decase.global.model.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,5 +48,13 @@ public class ProjectMemberController {
         JoinProjectResponse response = projectInvitationService.accept(token);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(response));
+    }
+
+    @Operation(summary = "프로젝트 멤버 리스트 조회", description = "프로젝트 참여 중인 멤버 목록 조회를 위한 API입니다.")
+    @GetMapping("/{projectId}/members")
+    public ResponseEntity<ApiResponse<List<MemberProjectResponse>>> findAllMember(@PathVariable("projectId") long projectId) {
+        List<MemberProjectResponse> responses = projectInvitationService.findAllByProject(projectId);
+        return ResponseEntity.ok()
+                .body(ApiResponse.success(responses));
     }
 }
