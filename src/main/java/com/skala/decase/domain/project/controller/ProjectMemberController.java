@@ -1,12 +1,11 @@
 package com.skala.decase.domain.project.controller;
 
-import com.skala.decase.domain.member.controller.dto.response.MemberResponse;
 import com.skala.decase.domain.project.controller.dto.request.ChangeStatusRequest;
 import com.skala.decase.domain.project.controller.dto.request.CreateMemberProjectRequest;
 import com.skala.decase.domain.project.controller.dto.response.CreateMemberProjectResponse;
+import com.skala.decase.domain.project.controller.dto.response.DeleteMemberResponse;
 import com.skala.decase.domain.project.controller.dto.response.JoinProjectResponse;
 import com.skala.decase.domain.project.controller.dto.response.MemberProjectResponse;
-import com.skala.decase.domain.project.domain.MemberProject;
 import com.skala.decase.domain.project.service.ProjectInvitationService;
 import com.skala.decase.global.model.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -72,6 +71,14 @@ public class ProjectMemberController {
     public ResponseEntity<ApiResponse<MemberProjectResponse>> updateMemberStatus(@PathVariable("projectId") long projectId, @PathVariable("memberId") String memberId, @RequestBody ChangeStatusRequest request) {
         MemberProjectResponse response = projectInvitationService.updateMemberStatus(projectId, memberId, request);
         return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .body(ApiResponse.success(response));
+    }
+
+    @Operation(summary = "프로젝트 멤버 삭제", description = "프로젝트 멤버 삭제를 위한 API입니다.")
+    @DeleteMapping("/{projectId}/members/{memberId}")
+    public ResponseEntity<ApiResponse<DeleteMemberResponse>> deleteMember(@PathVariable("projectId") long projectId, @PathVariable("memberId") String memberId) {
+        DeleteMemberResponse response = projectInvitationService.deleteMember(projectId, memberId);
+        return ResponseEntity.ok()
                 .body(ApiResponse.success(response));
     }
 }

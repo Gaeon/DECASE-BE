@@ -1,5 +1,6 @@
 package com.skala.decase.domain.project.mapper;
 
+import com.skala.decase.domain.project.controller.dto.response.DeleteMemberResponse;
 import com.skala.decase.domain.project.controller.dto.response.MemberProjectResponse;
 import com.skala.decase.domain.project.domain.MemberProject;
 import lombok.AllArgsConstructor;
@@ -18,5 +19,9 @@ public class ProjectMemberMapper {
                 memberProject.getMember().getCompany().getName(),
                 memberProject.getPermission()
         );
+    }
+
+    public DeleteMemberResponse deleteSuccess() {
+        return new DeleteMemberResponse("멤버가 정상적으로 삭제되었습니다.");
     }
 }

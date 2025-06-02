@@ -6,6 +6,7 @@ import com.skala.decase.domain.member.service.MemberService;
 import com.skala.decase.domain.project.controller.dto.request.ChangeStatusRequest;
 import com.skala.decase.domain.project.controller.dto.request.CreateMemberProjectRequest;
 import com.skala.decase.domain.project.controller.dto.response.CreateMemberProjectResponse;
+import com.skala.decase.domain.project.controller.dto.response.DeleteMemberResponse;
 import com.skala.decase.domain.project.controller.dto.response.JoinProjectResponse;
 import com.skala.decase.domain.project.controller.dto.response.MemberProjectResponse;
 import com.skala.decase.domain.project.domain.MemberProject;
@@ -110,5 +111,12 @@ public class ProjectInvitationService {
         memberProject.setPermission(request.permission());
         memberProjectRepository.save(memberProject);
         return projectMemberMapper.toResponse(memberProject);
+    }
+
+    public DeleteMemberResponse deleteMember(long projectId, String memberId) {
+        MemberProject memberProject = memberProjectRepository.findByProjectIdAndId(projectId, memberId)
+                .orElseThrow(() -> new ProjectException("해당 프로젝트에 멤버가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+        memberProjectRepository.delete(memberProject);
+        return projectMemberMapper.deleteSuccess();
     }
 }
