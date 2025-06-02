@@ -40,8 +40,7 @@ public class RfpProcessingService {
     private final ProjectService projectService;
     private final MemberService memberService;
 
-    private List<CreateRfpResponse> fetchRequirements(Project project, Member member, MultipartFile file,
-                                                      Document document) {
+    private List<CreateRfpResponse> fetchRequirements(MultipartFile file) {
         // 1. 파일을 FastAPI로 전송하고 결과 받아오기
 //        String boundary = UUID.randomUUID().toString();
 //        Flux<DataBuffer> fileContent = DataBufferUtils.readInputStream(
@@ -87,12 +86,11 @@ public class RfpProcessingService {
     public void createRFP(Long projectId, Long memberId, String docId, MultipartFile file) {
         Project project = projectService.findByProjectId(projectId);
         Member member = memberService.findByMemberId(memberId);
-        //일단 RFP 기준
         Document document = documentRepository.findByDocId(docId)
                 .orElseThrow(() -> new DocumentException("문서를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
         // AI가 생성항 요구사항 정의서 받아옴
-        List<CreateRfpResponse> requirements = fetchRequirements(project, member, file, document);
+        List<CreateRfpResponse> requirements = fetchRequirements(file);
 
         if (requirements == null) {
             return;
@@ -104,11 +102,12 @@ public class RfpProcessingService {
         for (CreateRfpResponse requirement : requirements) {
             //요구사항 정의서 저장
             Requirement newReq = requirementServiceMapper.toREQEntity(requirement, member, project, now);
-            newReq = requirementRepository.save(newReq);
+            requirementRepository.save(newReq);
 
             //출처 저장
             Source source = requirementServiceMapper.toSrcEntity(requirement, newReq, document);
-            source = sourceRepository.save(source);
+            sourceRepository.save(source);
         }
     }
+
 }
