@@ -8,8 +8,8 @@ public enum RequirementType {
 
     public static RequirementType fromKorean(String value) {
         return switch (value) {
-            case "기능" -> FR;
-            case "비기능" -> NFR;
+            case "기능적" -> FR;
+            case "비기능적" -> NFR;
             default -> throw new RequirementTypeException("Unknown requirement type value: " + value,
                     HttpStatus.BAD_REQUEST);
         };
