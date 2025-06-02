@@ -13,12 +13,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "TD_MEMBER_PROJECTS")
-@Getter
+@Data
 @NoArgsConstructor
 public class MemberProject {
 

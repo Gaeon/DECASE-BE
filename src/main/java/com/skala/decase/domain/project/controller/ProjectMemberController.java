@@ -1,6 +1,7 @@
 package com.skala.decase.domain.project.controller;
 
 import com.skala.decase.domain.member.controller.dto.response.MemberResponse;
+import com.skala.decase.domain.project.controller.dto.request.ChangeStatusRequest;
 import com.skala.decase.domain.project.controller.dto.request.CreateMemberProjectRequest;
 import com.skala.decase.domain.project.controller.dto.response.CreateMemberProjectResponse;
 import com.skala.decase.domain.project.controller.dto.response.JoinProjectResponse;
@@ -63,6 +64,14 @@ public class ProjectMemberController {
     public ResponseEntity<ApiResponse<MemberProjectResponse>> findMember(@PathVariable("projectId") long projectId, @PathVariable("memberId") String memberId) {
         MemberProjectResponse response = projectInvitationService.findMemberInProject(projectId, memberId);
         return ResponseEntity.ok()
+                .body(ApiResponse.success(response));
+    }
+
+    @Operation(summary = "프로젝트 멤버 권한 수정", description = "프로젝트 참여 중인 멤버의 권한을 수정하기 위한 API입니다.")
+    @PatchMapping("/{projectId}/members/{memberId}/status")
+    public ResponseEntity<ApiResponse<MemberProjectResponse>> updateMemberStatus(@PathVariable("projectId") long projectId, @PathVariable("memberId") String memberId, @RequestBody ChangeStatusRequest request) {
+        MemberProjectResponse response = projectInvitationService.updateMemberStatus(projectId, memberId, request);
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .body(ApiResponse.success(response));
     }
 }
