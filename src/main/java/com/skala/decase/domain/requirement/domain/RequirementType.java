@@ -1,5 +1,17 @@
 package com.skala.decase.domain.requirement.domain;
 
+import com.skala.decase.domain.requirement.exception.RequirementTypeException;
+import org.springframework.http.HttpStatus;
+
 public enum RequirementType {
-    FR, NFR
+    FR, NFR;
+
+    public static RequirementType fromKorean(String value) {
+        return switch (value) {
+            case "기능" -> FR;
+            case "비기능" -> NFR;
+            default -> throw new RequirementTypeException("Unknown requirement type value: " + value,
+                    HttpStatus.BAD_REQUEST);
+        };
+    }
 }
