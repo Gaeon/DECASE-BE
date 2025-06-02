@@ -1,7 +1,9 @@
 package com.skala.decase.domain.requirement.controller;
 
+import com.skala.decase.domain.requirement.controller.dto.CreateRequirementDto;
 import com.skala.decase.domain.requirement.controller.dto.RequirementDto;
 import com.skala.decase.domain.requirement.controller.dto.RequirementRevisionDto;
+import com.skala.decase.domain.requirement.controller.dto.UpdateRequirementDto;
 import com.skala.decase.domain.requirement.domain.Requirement;
 import com.skala.decase.domain.requirement.service.RequirementService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -67,5 +69,21 @@ public class RequirementController {
 			@PathVariable Long projectId) {
 		List<RequirementRevisionDto> revisions =repositoryService.getRequirementRevisions(projectId);
 		return ResponseEntity.ok(revisions);
+	}
+
+	@PostMapping("{projectId}/requirements/edit")
+	public ResponseEntity<RequirementDto> updateRequirement(
+			@PathVariable Long projectId,
+			@RequestBody UpdateRequirementDto dto){
+		Requirement updatedReq = repositoryService.updateRequirement(projectId, dto);
+		RequirementDto rd = RequirementDto.fromEntity(updatedReq);
+		return ResponseEntity.ok(rd);
+	}
+
+	@PatchMapping("{projectId}/requirments/{reqPk}/delete")
+	public String deleteRequirement(
+			@PathVariable Long projectId,
+			@PathVariable Long reqPk) {
+		return repositoryService.deleteRequirement(projectId, reqPk);
 	}
 }

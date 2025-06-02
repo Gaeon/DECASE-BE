@@ -10,10 +10,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "TD_SOURCE")
 @Getter
+@Setter
 @NoArgsConstructor
 public class RequirementDocument {
 
@@ -22,7 +24,7 @@ public class RequirementDocument {
     private long sourceId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "req_pk", insertable = false, updatable = false)
+    @JoinColumn(name = "req_pk")
     private Requirement requirement;
 
     @ManyToOne(fetch = FetchType.LAZY)
