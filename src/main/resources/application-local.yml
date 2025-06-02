@@ -28,7 +28,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MariaDBDialect # mariadb
-#        dialect: org.hibernate.dialect.MySQL8Dialect # mysql
+    #        dialect: org.hibernate.dialect.MySQL8Dialect # mysql
     show-sql: true
 
   # actuator
