@@ -39,4 +39,11 @@ public class MemberProject {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;
+
+    public MemberProject(Member member, Project project, Permission permission, boolean isAdmin) {
+        this.permission = permission;
+        this.isAdmin = isAdmin;
+        this.member = member;
+        this.project = project;
+    }
 }

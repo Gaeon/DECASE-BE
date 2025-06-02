@@ -1,15 +1,10 @@
 package com.skala.decase.domain.project.exception;
 
-import lombok.Getter;
+import com.skala.decase.global.exception.CustomException;
 import org.springframework.http.HttpStatus;
 
-@Getter
-public class ProjectException extends RuntimeException {
-    private final HttpStatus status;
-
+public class ProjectException extends CustomException {
     public ProjectException(String message, HttpStatus status) {
-        super(message);
-        this.status = status;
+        super(message, status);
     }
-
 }
