@@ -5,6 +5,8 @@ import com.skala.decase.domain.project.domain.MemberProject;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.domain.ProjectStatus;
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -110,5 +112,11 @@ public interface MemberProjectRepository extends JpaRepository<MemberProject, Lo
                                                     @Param("status") ProjectStatus status,
                                                     @Param("proposalPM") String proposalPM,
                                                     Pageable pageable);
+
+    @Query("SELECT mp FROM MemberProject mp " +
+            "JOIN FETCH mp.project p " +
+            "WHERE p.id = :projectId " +
+            "AND mp.member.id = :id")
+    Optional<MemberProject> findByProjectIdAndId(@Param("projectId") long projectId, @Param("id") String memberId);
 
 }

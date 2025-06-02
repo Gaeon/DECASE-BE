@@ -95,4 +95,11 @@ public class ProjectInvitationService {
                 .filter(memberProject -> memberProject.getProject().getProjectId() == projectId)
                 .map(projectMemberMapper::toResponse).toList();
     }
+
+    public MemberProjectResponse findMemberInProject(long projectId, String memberId) {
+        return memberProjectRepository.findByProjectIdAndId(projectId, memberId)
+                .map(projectMemberMapper::toResponse)
+                .orElseThrow(() -> new ProjectException("해당 프로젝트에 멤버가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+    }
+
 }

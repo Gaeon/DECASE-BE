@@ -57,4 +57,12 @@ public class ProjectMemberController {
         return ResponseEntity.ok()
                 .body(ApiResponse.success(responses));
     }
+
+    @Operation(summary = "프로젝트 멤버 단일 조회", description = "프로젝트 참여 중인 멤버를 조회하기 위한 API입니다.")
+    @GetMapping("/{projectId}/members/{memberId}")
+    public ResponseEntity<ApiResponse<MemberProjectResponse>> findMember(@PathVariable("projectId") long projectId, @PathVariable("memberId") String memberId) {
+        MemberProjectResponse response = projectInvitationService.findMemberInProject(projectId, memberId);
+        return ResponseEntity.ok()
+                .body(ApiResponse.success(response));
+    }
 }
