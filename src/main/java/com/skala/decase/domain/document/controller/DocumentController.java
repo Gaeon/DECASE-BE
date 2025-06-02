@@ -8,10 +8,12 @@ import com.skala.decase.domain.document.service.DocumentService;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Tag(name = "Docs API", description = "문서 관리를 위한 api 입니다.")
@@ -54,5 +56,10 @@ public class DocumentController {
     @GetMapping("/projects/{projectId}/document/uploads")
     public ResponseEntity<List<DocumentResponse>> getDocumentUploads(@PathVariable Long projectId) throws Exception {
         return documentService.getDocumentUploads(projectId);
+    }
+
+    @GetMapping("/documents/{docId}/preview")
+    public ResponseEntity<Resource> previewDocument(@PathVariable String docId) throws IOException {
+        return documentService.previewDocument(docId);
     }
 }
