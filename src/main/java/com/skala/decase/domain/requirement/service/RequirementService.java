@@ -74,7 +74,7 @@ public class RequirementService {
 				.filter(r -> type == null || r.getType().ordinal() == type)
 				.filter(r -> difficulty == null || r.getDifficulty().ordinal() == difficulty)
 				.filter(r -> priority == null || r.getPriority().ordinal() == priority)
-				.filter(r -> docTypes == null || r.getRequirementDocuments().stream()
+				.filter(r -> docTypes == null || r.getSources().stream()
 						.anyMatch(rd -> {
 							String docId= rd.getDocument().getDocId();
 							String prefix = docId.split("-")[0];

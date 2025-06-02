@@ -2,15 +2,28 @@ package com.skala.decase.domain.requirement.domain;
 
 import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.project.domain.Project;
-import jakarta.persistence.*;
-
+import com.skala.decase.domain.source.domain.Source;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "TD_REQUIREMNETS")
+@Table(name = "TD_REQUIREMENTS")
 @Getter
 @NoArgsConstructor
 public class Requirement {
@@ -71,5 +84,28 @@ public class Requirement {
 
     // 양방향 관계
     @OneToMany(mappedBy = "requirement", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RequirementDocument> requirementDocuments;  //출처
+    private List<Source> sources;  //출처
+
+    public void createInitialRequirement(String reqIdCode, RequirementType type, String level1, String level2,
+                                         String level3, String name, String description, Priority priority,
+                                         Difficulty difficulty,
+                                         LocalDateTime createdDate, Project project, Member createdBy) {
+        this.reqIdCode = reqIdCode;
+        this.revisionCount = 1;
+        this.type = type;
+        this.level1 = level1;
+        this.level2 = level2;
+        this.level3 = level3;
+        this.name = name;
+        this.description = description;
+        this.priority = priority;
+        this.difficulty = difficulty;
+        this.createdDate = createdDate;
+        this.modifiedDate = createdDate;
+        this.isDeleted = false;
+        this.project = project;
+        this.createdBy = createdBy;
+        this.modReason = ""; //초기 요구사항 정의서의 수정 이유는 비워둠.
+        this.sources = new ArrayList<>();
+    }
 }
