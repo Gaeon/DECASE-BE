@@ -7,13 +7,18 @@ import com.skala.decase.domain.project.service.ProjectInvitationService;
 import com.skala.decase.global.model.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "Project Member API", description = "프로젝트 멤버 관리를 위한 API 입니다.")
 @RestController
+@Validated
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/projects")
 public class ProjectMemberController {
@@ -26,8 +31,10 @@ public class ProjectMemberController {
 
     @Operation(summary = "프로젝트 멤버 추가", description = "프로젝트 멤버 초대를 위한 API입니다.")
     @PostMapping("/{projectId}/members")
-    public ResponseEntity<ApiResponse<CreateMemberProjectResponse>> createInvitation(@PathVariable("projectId") long projectId, @RequestBody CreateMemberProjectRequest request) {
-        CreateMemberProjectResponse response = projectInvitationService.createInvitation(projectId, request);
+    public ResponseEntity<ApiResponse<List<CreateMemberProjectResponse>>> createInvitation(@PathVariable("projectId") long projectId, @RequestBody List<@Valid CreateMemberProjectRequest> requests) {
+        List<CreateMemberProjectResponse> response = requests.stream()
+                .map(request -> projectInvitationService.createInvitation(projectId, request))
+                .toList();
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(response));
     }
