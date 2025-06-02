@@ -40,7 +40,7 @@ public class ProjectMemberController {
     }
 
     @Operation(summary = "프로젝트 참여 수락", description = "토큰을 기반으로 프로젝트 참여.")
-    @GetMapping("/invitation")
+    @PostMapping("/invitation")
     public ResponseEntity<ApiResponse<JoinProjectResponse>> acceptInvitation(@RequestParam("token") String token) {
         JoinProjectResponse response = projectInvitationService.accept(token);
         return ResponseEntity.status(HttpStatus.CREATED)

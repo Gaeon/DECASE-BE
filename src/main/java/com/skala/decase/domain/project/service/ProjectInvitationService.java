@@ -1,8 +1,12 @@
 package com.skala.decase.domain.project.service;
 
+import com.skala.decase.domain.member.domain.Member;
+import com.skala.decase.domain.member.repository.MemberProjectRepository;
+import com.skala.decase.domain.member.service.MemberService;
 import com.skala.decase.domain.project.controller.dto.request.CreateMemberProjectRequest;
 import com.skala.decase.domain.project.controller.dto.response.CreateMemberProjectResponse;
 import com.skala.decase.domain.project.controller.dto.response.JoinProjectResponse;
+import com.skala.decase.domain.project.domain.MemberProject;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.domain.ProjectInvitation;
 import com.skala.decase.domain.project.exception.ProjectException;
@@ -18,7 +22,9 @@ public class ProjectInvitationService {
 
     private final SuccessMapper successMapper;
     private final ProjectInvitationRepository projectInvitationRepository;
+    private final MemberProjectRepository memberProjectRepository;
     private final ProjectService projectService;
+    private final MemberService memberService;
     private final MailService mailService;
 
     /*
@@ -41,15 +47,40 @@ public class ProjectInvitationService {
     }
 
     public JoinProjectResponse accept(String token) {
+
+        if (token == null || token.isBlank()) {
+            throw new ProjectException("토큰이 유효하지 않습니다.", HttpStatus.BAD_REQUEST);
+        }
+
         ProjectInvitation projectInvitation = projectInvitationRepository.findByToken(token);
-        if (token == null) {
-            throw new ProjectException("토큰이 유효하지 않습니다.", HttpStatus.NOT_FOUND);
+
+        if (projectInvitation == null) {
+            throw new ProjectException("해당 토큰에 해당하는 초대가 없습니다.", HttpStatus.NOT_FOUND);
         }
 
         if (projectInvitation.isExpired()) {
             throw new ProjectException("초대 링크가 만료되었습니다.", HttpStatus.GONE);
         }
 
-        return null;
+        Member newMember = memberService.findByMail(projectInvitation.getEmail());
+
+        if (newMember == null) {
+            return successMapper.isJoinSuccess(false, projectInvitation); //false일 경우 회원 가입
+        }
+
+        MemberProject memberProject = MemberProject.builder()
+                .permission(projectInvitation.getPermission())
+                .isAdmin(false)
+                .member(newMember)
+                .project(projectInvitation.getProject())
+                .build();
+        memberProjectRepository.save(memberProject);
+
+        projectInvitation.setAcceptedTrue();
+        projectInvitationRepository.save(projectInvitation);
+
+        mailService.sendWelcomeMail(newMember, projectInvitation.getProject());
+
+        return successMapper.isJoinSuccess(true, projectInvitation);
     }
 }

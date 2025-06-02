@@ -42,4 +42,8 @@ public class ProjectInvitation {
     public boolean isExpired() {
         return expiryDate.isBefore(LocalDateTime.now());
     }
+
+    public void setAcceptedTrue() {
+        this.accepted = true;
+    }
 }
