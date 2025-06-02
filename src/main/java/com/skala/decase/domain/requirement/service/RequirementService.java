@@ -1,16 +1,28 @@
 package com.skala.decase.domain.requirement.service;
 
+import com.skala.decase.domain.member.domain.Member;
+import com.skala.decase.domain.member.exception.MemberException;
+import com.skala.decase.domain.member.repository.MemberRepository;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.exception.ProjectException;
 import com.skala.decase.domain.project.repository.ProjectRepository;
+import com.skala.decase.domain.requirement.controller.dto.CreateRequirementDto;
 import com.skala.decase.domain.requirement.controller.dto.RequirementDto;
 import com.skala.decase.domain.requirement.controller.dto.RequirementRevisionDto;
+import com.skala.decase.domain.requirement.controller.dto.UpdateRequirementDto;
 import com.skala.decase.domain.requirement.domain.Requirement;
+import com.skala.decase.domain.requirement.domain.RequirementDocument;
+import com.skala.decase.domain.requirement.domain.RequirementType;
+import com.skala.decase.domain.requirement.exception.RequirementException;
+import com.skala.decase.domain.requirement.repository.RequirementDocumentRepository;
 import com.skala.decase.domain.requirement.repository.RequirementRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -19,8 +31,10 @@ public class RequirementService {
 
 	private final RequirementRepository requirementRepository;
 	private final ProjectRepository projectRepository;
+	private final MemberRepository memberRepository;
+	private final RequirementDocumentRepository requirementDocumentRepository;
 
-	// 기본값 1로 받도록 하기 위함
+	// 리비전 기본값 1로 받도록 하기 위함
 	public List<Requirement> getGeneratedRequirements(Long projectId) {
 		return getGeneratedRequirements(projectId, 1);
 	}
@@ -84,7 +98,7 @@ public class RequirementService {
 				.toList();
 	}
 
-	// 요구사항 버전 조회
+	// 요구사항 버전 별 조회
 	public List<RequirementRevisionDto> getRequirementRevisions(Long projectId) {
 		Project project = projectRepository.findById(projectId)
 				.orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
@@ -107,4 +121,52 @@ public class RequirementService {
 		}
 		return versionList;
 	}
+
+	@Transactional
+	public Requirement updateRequirement(Long projectId, UpdateRequirementDto req) {
+		Project project = projectRepository.findById(projectId)
+				.orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
+
+		Member member = memberRepository.findById(req.getMemberId())
+				.orElseThrow(() -> new MemberException("존재하지 않는 회원입니다.", HttpStatus.NOT_FOUND));
+
+		Requirement requirement = requirementRepository.findById(req.getReqPk())
+				.orElseThrow(() -> new RequirementException("해당 요구사항이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+
+		// 기존 요구사항 삭제
+		requirement.setDeleted(true);
+		requirement.setModifiedDate(LocalDateTime.now());
+
+		// 업데이트 된 요구사항 저장
+		Integer maxRevision = requirementRepository.getMaxRevisionCount(project);
+		Requirement updatedReq = req.toEntity(project, requirement.getReqIdCode(), maxRevision, member);
+		requirementRepository.save(updatedReq);
+
+		// 기존 RequirementDocument를 새로운 요구사항과 연결
+		RequirementDocument rd = requirementDocumentRepository.findByRequirement(requirement);
+		rd.setRequirement(updatedReq);
+		requirementDocumentRepository.save(rd);
+
+		return updatedReq;
+	}
+
+	@Transactional
+	public String deleteRequirement(Long projectId, Long reqPk) {
+		Project project = projectRepository.findById(projectId)
+				.orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
+
+		Requirement requirement = requirementRepository.findById(reqPk)
+				.orElseThrow(() -> new RequirementException("해당 요구사항이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+
+		// 기존 요구사항 삭제
+		requirement.setDeleted(true);
+		requirement.setModifiedDate(LocalDateTime.now());
+
+		// 기존 RequirementDocument를 새로운 요구사항과 연결
+		RequirementDocument rd = requirementDocumentRepository.findByRequirement(requirement);
+		requirementDocumentRepository.delete(rd);
+
+		return "요구사항이 삭제되었습니다.";
+	}
 }
+
