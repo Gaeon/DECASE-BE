@@ -5,10 +5,7 @@ import com.skala.decase.domain.member.repository.MemberProjectRepository;
 import com.skala.decase.domain.member.service.MemberService;
 import com.skala.decase.domain.project.controller.dto.request.ChangeStatusRequest;
 import com.skala.decase.domain.project.controller.dto.request.CreateMemberProjectRequest;
-import com.skala.decase.domain.project.controller.dto.response.CreateMemberProjectResponse;
-import com.skala.decase.domain.project.controller.dto.response.DeleteMemberResponse;
-import com.skala.decase.domain.project.controller.dto.response.JoinProjectResponse;
-import com.skala.decase.domain.project.controller.dto.response.MemberProjectResponse;
+import com.skala.decase.domain.project.controller.dto.response.*;
 import com.skala.decase.domain.project.domain.MemberProject;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.domain.ProjectInvitation;
@@ -118,5 +115,12 @@ public class ProjectInvitationService {
                 .orElseThrow(() -> new ProjectException("해당 프로젝트에 멤버가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
         memberProjectRepository.delete(memberProject);
         return projectMemberMapper.deleteSuccess();
+    }
+
+    public List<MemberInvitationResponse> findMemberInvitationByProject(long projectId) {
+        Project project = projectService.findByProjectId(projectId);
+        List<ProjectInvitation> projectInvitations = projectInvitationRepository.findAllByProject(project);
+
+        return projectInvitations.stream().map(projectMemberMapper::toInvite).toList();
     }
 }
