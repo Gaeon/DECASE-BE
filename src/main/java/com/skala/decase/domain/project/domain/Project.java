@@ -11,6 +11,7 @@ import java.util.List;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 
 @Entity
 @Table(name = "TM_PROJECTS")
@@ -81,8 +82,15 @@ public class Project {
         this.requirements = new ArrayList<>();
     }
 
-    //프로젝트 상태 변경
-    public void updateStatus(ProjectStatus status) {
-        this.status = status;
+    // 프로젝트 상태 없데이트
+    public void updateStatusByDate() {
+        Date today = new Date();
+        if (today.before(startDate)) {
+            this.status = ProjectStatus.NOT_STARTED;
+        } else if (today.after(endDate)) {
+            this.status = ProjectStatus.DONE;
+        } else {
+            this.status = ProjectStatus.IN_PROGRESS;
+        }
     }
 }
