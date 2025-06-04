@@ -82,7 +82,7 @@ public class Project {
         this.requirements = new ArrayList<>();
     }
 
-    // 프로젝트 상태 없데이트
+    // 프로젝트 상태 업데이트
     public void updateStatusByDate() {
         Date today = new Date();
         if (today.before(startDate)) {

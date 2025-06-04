@@ -113,7 +113,8 @@ public class ProjectService {
         return "프로젝트가 삭제되었습니다.";
     }
 
-    @Scheduled(cron = "0 0 0 * * ?") // 매일 0시 실행
+    // 매일 0시 모든 프로젝트 상태 업데이트
+    @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void updateAllProjectStatuses() {
         List<Project> allProjects = projectRepository.findAll();
