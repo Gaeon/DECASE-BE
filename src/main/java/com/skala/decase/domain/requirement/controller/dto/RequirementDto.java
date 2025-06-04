@@ -18,7 +18,7 @@ public class RequirementDto {
 	private String name;
 	private String description;
 	private String createdDate;
-	private String modifiedDate;
+	private int deletedRevision;
 	private String modReason;
 
 	public static RequirementDto fromEntity(Requirement r) {
@@ -36,7 +36,7 @@ public class RequirementDto {
 		dto.setName(r.getName());
 		dto.setDescription(r.getDescription());
 		dto.setCreatedDate(r.getCreatedDate().toString());
-		dto.setModifiedDate(r.getModifiedDate().toString());
+		dto.setDeletedRevision(r.getDeletedRevision());
 		dto.setModReason(r.getModReason());
 		return dto;
 	}

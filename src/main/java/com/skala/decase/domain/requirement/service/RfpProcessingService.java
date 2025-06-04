@@ -186,7 +186,7 @@ public class RfpProcessingService {
                 // 기존 요구사항 isDeleted=true로 바꾸기
                 Requirement oldRequirement = requirementRepository.findByReqIdCodeAndIsDeletedFalse(requirement.id())
                         .orElseThrow(() -> new RequirementException("업데이트할 요구사항을 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
-                oldRequirement.softDelete();
+                oldRequirement.softDelete(latestRevisionCount+1);
 
                 // 새로운 업데이트된 요구사항 생성
                 Requirement updatedRequirement = requirementUpdateServiceMapper.toUpdateREQEntity(requirement, member, project,
@@ -201,7 +201,7 @@ public class RfpProcessingService {
             if (UpdateStatus.fromAI(requirement.status()).equals(UpdateStatus.DELETE)) {
                 Requirement updatedRequirement = requirementRepository.findByReqIdCodeAndIsDeletedFalse(requirement.id())
                         .orElseThrow(() -> new RequirementException("삭제할 요구사항을 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
-                updatedRequirement.softDelete();
+                updatedRequirement.softDelete(latestRevisionCount+1);
             }
 
         }

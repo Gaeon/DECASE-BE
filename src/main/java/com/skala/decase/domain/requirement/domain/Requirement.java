@@ -66,11 +66,11 @@ public class Requirement {
     @Column(nullable = false)
     private LocalDateTime createdDate;
 
-    @Column(nullable = false)
-    private LocalDateTime modifiedDate;
-
     @Column(columnDefinition = "boolean DEFAULT false")
     private boolean isDeleted;  //요구사항 삭제 여부
+
+    @Column(nullable = false)
+    private int deletedRevision;  // 요구사항이 삭제된 버전 정보
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
@@ -89,8 +89,9 @@ public class Requirement {
     /**
      * 요구사항 정의서 soft delete
      */
-    public void softDelete() {
+    public void softDelete(int deletedRevision) {
         this.isDeleted = true;
+        this.deletedRevision = deletedRevision;
     }
 
     /**
@@ -111,7 +112,7 @@ public class Requirement {
         this.priority = priority;
         this.difficulty = difficulty;
         this.createdDate = createdDate;
-        this.modifiedDate = createdDate;
+        this.deletedRevision = 0;  //초기 요구사항은 삭제 x
         this.isDeleted = false;
         this.project = project;
         this.createdBy = createdBy;
@@ -138,7 +139,6 @@ public class Requirement {
         this.priority = priority;
         this.difficulty = difficulty;
         this.createdDate = createdDate;
-        this.modifiedDate = createdDate;
         this.isDeleted = false;
         this.project = project;
         this.createdBy = createdBy;
