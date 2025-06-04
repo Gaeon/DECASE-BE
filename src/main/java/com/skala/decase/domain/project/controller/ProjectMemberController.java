@@ -2,10 +2,7 @@ package com.skala.decase.domain.project.controller;
 
 import com.skala.decase.domain.project.controller.dto.request.ChangeStatusRequest;
 import com.skala.decase.domain.project.controller.dto.request.CreateMemberProjectRequest;
-import com.skala.decase.domain.project.controller.dto.response.CreateMemberProjectResponse;
-import com.skala.decase.domain.project.controller.dto.response.DeleteMemberResponse;
-import com.skala.decase.domain.project.controller.dto.response.JoinProjectResponse;
-import com.skala.decase.domain.project.controller.dto.response.MemberProjectResponse;
+import com.skala.decase.domain.project.controller.dto.response.*;
 import com.skala.decase.domain.project.service.ProjectInvitationService;
 import com.skala.decase.global.model.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -80,5 +77,13 @@ public class ProjectMemberController {
         DeleteMemberResponse response = projectInvitationService.deleteMember(projectId, memberId);
         return ResponseEntity.ok()
                 .body(ApiResponse.success(response));
+    }
+
+    @Operation(summary = "프로젝트 초대 현황 조회", description = "프로젝트 내 초대 현황을 조회하는 API입니다.")
+    @GetMapping("/{projectId}/members/invitation")
+    public ResponseEntity<ApiResponse<List<MemberInvitationResponse>>> findInviteMember(@PathVariable("projectId") long projectId) {
+        List<MemberInvitationResponse> responses = projectInvitationService.findMemberInvitationByProject(projectId);
+        return ResponseEntity.ok()
+                .body(ApiResponse.success(responses));
     }
 }
