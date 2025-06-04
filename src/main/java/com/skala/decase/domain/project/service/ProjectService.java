@@ -8,10 +8,12 @@ import com.skala.decase.domain.project.controller.dto.response.ProjectDetailResp
 import com.skala.decase.domain.project.controller.dto.response.ProjectResponse;
 import com.skala.decase.domain.project.domain.MemberProject;
 import com.skala.decase.domain.project.domain.Project;
+import com.skala.decase.domain.project.domain.ProjectInvitation;
 import com.skala.decase.domain.project.exception.ProjectException;
 import com.skala.decase.domain.project.mapper.MemberProjectMapper;
 import com.skala.decase.domain.project.mapper.ProjectMapper;
 import com.skala.decase.domain.member.repository.MemberProjectRepository;
+import com.skala.decase.domain.project.repository.ProjectInvitationRepository;
 import com.skala.decase.domain.project.repository.ProjectRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -31,6 +33,7 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final MemberProjectRepository memberProjectRepository;
+    private final ProjectInvitationRepository projectInvitationRepository;
 
     private final MemberService memberService;
 
@@ -109,6 +112,8 @@ public class ProjectService {
 
     @Transactional
     public String deleteProject(Long projectId) {
+        projectInvitationRepository.deleteByProject_ProjectId(projectId);
+        memberProjectRepository.deleteByProject_ProjectId(projectId);
         Project project = findByProjectId(projectId);
         projectRepository.delete(project);
         return "프로젝트가 삭제되었습니다.";

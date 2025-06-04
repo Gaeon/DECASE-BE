@@ -9,5 +9,8 @@ import java.util.List;
 public interface ProjectInvitationRepository extends JpaRepository<ProjectInvitation, Long> {
     ProjectInvitation findByToken(String token);
 
+    void deleteByProject_ProjectId(Long projectId);
+
     List<ProjectInvitation> findAllByProject(Project project);
+
 }

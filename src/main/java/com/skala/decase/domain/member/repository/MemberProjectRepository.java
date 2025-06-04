@@ -119,4 +119,6 @@ public interface MemberProjectRepository extends JpaRepository<MemberProject, Lo
             "AND mp.member.id = :id")
     Optional<MemberProject> findByProjectIdAndId(@Param("projectId") long projectId, @Param("id") String memberId);
 
+    // 프로젝트 삭제를 위한 member_project 삭제
+    void deleteByProject_ProjectId(Long projectId);
 }
