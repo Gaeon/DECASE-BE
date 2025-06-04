@@ -23,7 +23,7 @@ public class MemberController {
 
     @Operation(summary = "회원 정보 조회", description = "회원 정보를 조회합니다.")
     @GetMapping("/{memberId}")
-    public ResponseEntity<ApiResponse<MemberResponse>> findUser(@PathVariable("memberId") String memberId) {
+    public ResponseEntity<ApiResponse<MemberResponse>> findUser(@PathVariable("memberId") Long memberId) {
         MemberResponse response = memberService.findUserInfo(memberId);
 
         return ResponseEntity.ok(ApiResponse.success(response));

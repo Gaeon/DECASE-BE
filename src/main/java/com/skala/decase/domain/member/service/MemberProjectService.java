@@ -62,25 +62,6 @@ public class MemberProjectService {
     }
 
     /**
-     * 프로젝트 상태 변경
-     *
-     * @param projectId
-     * @param memberId
-     * @param request
-     * @return
-     */
-    public ProjectResponse updateProjectStatus(Long projectId, Long memberId, UpdateStatusRequest request) {
-        Project project = projectService.findByProjectId(projectId);
-        Member member = memberService.findByMemberId(memberId);
-
-        checkIsAdmin(project, member);
-
-        project.updateStatus(request.status());
-
-        return projectMapper.toResponse(project, member);
-    }
-
-    /**
      * 필터 조건에 따라 적절한 Repository 메서드 선택 : 이거 곧 리팩토링 할게...... 지금은 할게 많으니..
      */
     private Page<MemberProject> findMemberProjectsByFilter(Long memberId, String projectName, ProjectStatus status,
