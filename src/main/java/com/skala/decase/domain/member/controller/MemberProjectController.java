@@ -44,19 +44,4 @@ public class MemberProjectController {
                 status, proposalPM, pageable);
         return ResponseEntity.ok().body(ApiResponse.success(response));
     }
-
-    /**
-     * 프로젝트 상태 변경
-     */
-    @Operation(summary = "프로젝트 상태 변경", description = "프로젝트의 상태를 변경합니다. 관리자 권한이 필요합니다.")
-    @PutMapping("/{memberId}/projects/{projectId}/status")
-    public ResponseEntity<ApiResponse<ProjectResponse>> updateProjectStatus(
-            @PathVariable("memberId") Long memberId,
-             @PathVariable("projectId") Long projectId,
-            @RequestBody UpdateStatusRequest request) {
-
-        ProjectResponse response = memberProjectService.updateProjectStatus(projectId, memberId, request);
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
 }
