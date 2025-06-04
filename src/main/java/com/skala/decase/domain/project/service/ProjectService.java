@@ -4,6 +4,7 @@ import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.member.service.MemberService;
 import com.skala.decase.domain.project.controller.dto.request.CreateProjectRequest;
 import com.skala.decase.domain.project.controller.dto.response.EditProjectResponseDto;
+import com.skala.decase.domain.project.controller.dto.response.ProjectDetailResponseDto;
 import com.skala.decase.domain.project.controller.dto.response.ProjectResponse;
 import com.skala.decase.domain.project.domain.MemberProject;
 import com.skala.decase.domain.project.domain.Project;
@@ -110,5 +111,20 @@ public class ProjectService {
         Project project = findByProjectId(projectId);
         projectRepository.delete(project);
         return "프로젝트가 삭제되었습니다.";
+    }
+
+    public ProjectDetailResponseDto getProject(Long projectId) {
+        Project project = findByProjectId(projectId);
+
+
+        return new ProjectDetailResponseDto(
+                project.getProjectId(),
+                project.getName(),
+                project.getScale(),
+                project.getStartDate(),
+                project.getEndDate(),
+                project.getDescription(),
+                project.getProposalPM()
+        );
     }
 }
