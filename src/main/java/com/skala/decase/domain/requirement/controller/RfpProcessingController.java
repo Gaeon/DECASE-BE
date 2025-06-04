@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -35,13 +36,33 @@ public class RfpProcessingController {
      */
     @PostMapping(path="/{projectId}/requirement-documents",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ApiResponse<Void>> processRfpFile(@PathVariable Long projectId,
+    public ResponseEntity<ApiResponse<String>> processRfpFile(@PathVariable Long projectId,
                                                             @RequestParam("memberId") Long memberId,
                                                             @RequestParam("docId") String docId,
                                                             @RequestPart("file") MultipartFile file) {
         // post: /api/v1/process-rfp-file에서 생성된 요구사항 정의서 리스트를 받아옴.
         rfpProcessingService.createRFP(projectId, memberId, docId, file);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(ApiResponse.success("요구사항 정의서 생성 완료"));
+    }
+
+    /**
+     * 추가적인 문서를 받아서 요구사항 정의서 수정사항에 반영
+     *
+     * @param projectId 프로젝트 id
+     * @param memberId  멤버 id
+     * @param docId     문서 id
+     * @param file      사용자 업로드 파일
+     * @return
+     */
+    @PutMapping(path="/{projectId}/requirement-documents",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<String>> updateRfpFile(@PathVariable Long projectId,
+                                                            @RequestParam("memberId") Long memberId,
+                                                            @RequestParam("docId") String docId,
+                                                            @RequestPart("file") MultipartFile file) {
+        // post: /api/v1/process-rfp-file에서 생성된 요구사항 정의서 리스트를 받아옴.
+        rfpProcessingService.updateRFP(projectId, memberId, docId, file);
+        return ResponseEntity.ok().body(ApiResponse.success("요구사항 정의서 수정 완료"));
     }
 
 }

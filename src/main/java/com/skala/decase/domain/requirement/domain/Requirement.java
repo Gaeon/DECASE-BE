@@ -86,6 +86,16 @@ public class Requirement {
     @OneToMany(mappedBy = "requirement", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Source> sources;  //출처
 
+    /**
+     * 요구사항 정의서 soft delete
+     */
+    public void softDelete() {
+        this.isDeleted = true;
+    }
+
+    /**
+     * 요구사항 정의서 초기 생성시 생성되는 데이터
+     */
     public void createInitialRequirement(String reqIdCode, RequirementType type, String level1, String level2,
                                          String level3, String name, String description, Priority priority,
                                          Difficulty difficulty,
@@ -108,4 +118,31 @@ public class Requirement {
         this.modReason = ""; //초기 요구사항 정의서의 수정 이유는 비워둠.
         this.sources = new ArrayList<>();
     }
+
+    /**
+     * 요구사항 정의서 수정시 추가되는 데이터
+     */
+    public void createUpdateRequirement(String reqIdCode, int revisionCount, String modReason, RequirementType type,
+                                        String level1, String level2,
+                                        String level3, String name, String description, Priority priority,
+                                        Difficulty difficulty,
+                                        LocalDateTime createdDate, Project project, Member createdBy) {
+        this.reqIdCode = reqIdCode;
+        this.revisionCount = revisionCount;
+        this.type = type;
+        this.level1 = level1;
+        this.level2 = level2;
+        this.level3 = level3;
+        this.name = name;
+        this.description = description;
+        this.priority = priority;
+        this.difficulty = difficulty;
+        this.createdDate = createdDate;
+        this.modifiedDate = createdDate;
+        this.isDeleted = false;
+        this.project = project;
+        this.createdBy = createdBy;
+        this.modReason = modReason; //요구사항 추가 이유
+    }
+
 }
