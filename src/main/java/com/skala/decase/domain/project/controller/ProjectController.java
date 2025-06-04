@@ -47,8 +47,7 @@ public class ProjectController {
     @DeleteMapping("{projectId}")
     public ResponseEntity<String> deleteProject(
             @PathVariable Long projectId){
-        projectService.deleteProject(projectId);
-        return ResponseEntity.ok("프로젝트가 삭제되었습니다.");
+        return ResponseEntity.ok(projectService.deleteProject(projectId));
     }
 
     // 단일 프로젝트 조회
