@@ -3,22 +3,17 @@ package com.skala.decase.domain.document.domain;
 import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.requirement.domain.RequirementDocument;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
-import lombok.Getter;
+
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Data
 @Table(name = "TM_DOCUMENTS")
-@Getter
 @NoArgsConstructor
 public class Document {
 
@@ -53,9 +48,9 @@ public class Document {
     private Project project;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", insertable = false, updatable = false)
+    @JoinColumn(name = "member_id", updatable = false)
     private Member createdBy;
 
-    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RequirementDocument> requirementDocuments;
 }
