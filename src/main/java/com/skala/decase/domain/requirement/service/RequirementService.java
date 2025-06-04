@@ -7,6 +7,9 @@ import com.skala.decase.domain.requirement.controller.dto.RequirementDto;
 import com.skala.decase.domain.requirement.controller.dto.RequirementRevisionDto;
 import com.skala.decase.domain.requirement.domain.Requirement;
 import com.skala.decase.domain.requirement.repository.RequirementRepository;
+import com.skala.decase.domain.source.domain.Source;
+import com.skala.decase.domain.source.service.SourceRepository;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,6 +22,7 @@ public class RequirementService {
 
 	private final RequirementRepository requirementRepository;
 	private final ProjectRepository projectRepository;
+	private final SourceRepository sourceRepository;
 
 	// 기본값 1로 받도록 하기 위함
 	public List<Requirement> getGeneratedRequirements(Long projectId) {
@@ -28,7 +32,58 @@ public class RequirementService {
 	public List<Requirement> getGeneratedRequirements(Long projectId, int revisionCount) {
 		Project project = projectRepository.findById(projectId)
 				.orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트 입니다.", HttpStatus.NOT_FOUND));
-		return requirementRepository.findValidRequirementsByProjectAndRevision(project.getProjectId(), revisionCount);
+		List<Requirement> requirements=requirementRepository.findValidRequirementsByProjectAndRevision(project.getProjectId(), revisionCount);
+		System.out.println("조회된 요구사항 개수: " + requirements.size());
+		if (requirements.isEmpty()) {
+			return requirements;
+		}
+
+		// 3. 요구사항 PK 목록 추출
+		List<Long> reqPks = requirements.stream()
+				.map(Requirement::getReqPk)
+				.toList();
+		System.out.println("ReqPks: " + reqPks);
+
+		// 4. 해당 req_id_code들의 특정 버전 이하 모든 요구사항 조회 -> source 용
+		List<Long> allRelatedReqPks  = requirementRepository
+				.findRequirementsByReqPksAndRevision(reqPks, revisionCount);
+		System.out.println("조회된 관련 요구사항 개수: " + allRelatedReqPks);
+
+		// 4. 해당 요구사항들의 Source 정보 일괄 조회
+		List<Source> sources = sourceRepository.findByRequirementReqPks(allRelatedReqPks );
+		System.out.println("조회된 Source 개수: " + sources.size());
+		sources.forEach(source ->
+				System.out.println("SourceId: " + source.getSourceId() + ", ReqPk: " + source.getRequirement().getReqPk() +
+						", ReqIdCode: " + source.getRequirement().getReqIdCode() + ", DocId: " +
+						(source.getDocument() != null ? source.getDocument().getDocId() : "null"))
+		);
+
+		// 5. 요구사항별로 Source 그룹화
+		Map<String, List<Source>> sourcesByReqPk = sources.stream()
+				.collect(Collectors.groupingBy(Source::getReqIdCode));
+		System.out.println("=== 5단계: Source 그룹화 결과 ===");
+		sourcesByReqPk.forEach((reqPk, sourceList) ->
+				System.out.println("ReqPk: " + reqPk + " -> Source 개수: " + sourceList.size())
+		);
+
+
+		// 6. 각 요구사항에 해당하는 Source 리스트 설정
+		// 주의: JPA에서 조회된 엔티티의 컬렉션을 직접 수정하는 것은 권장되지 않으므로
+		// 새로운 리스트를 생성하여 반환하거나 DTO를 사용하는 것이 좋습니다.
+		requirements.forEach(requirement -> {
+			List<Source> reqSources = sourcesByReqPk.getOrDefault(requirement.getReqIdCode(), new ArrayList<>());
+			// 여기서는 기존 sources 리스트를 clear하고 새로 추가
+			requirement.getSources().clear();
+			requirement.getSources().addAll(reqSources);
+		});
+		System.out.println("=== 최종 결과 ===");
+		System.out.println("반환할 요구사항 개수: " + requirements.size());
+		requirements.forEach(req ->
+				System.out.println("ReqPk: " + req.getReqPk() + ", ReqIdCode: " + req.getReqIdCode() +
+						", Sources 개수: " + req.getSources().size())
+		);
+
+		return requirements;
 	}
 
 	public Map<String, List<String>> getRequirementCategory(Long projectId) {

@@ -2,33 +2,30 @@ package com.skala.decase.domain.requirement.repository;
 
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.requirement.domain.Requirement;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface RequirementRepository extends JpaRepository<Requirement, Long> {
     /**
-     * 특정 버전의 유효한 요구사항 정의서 목록 불러오기
-     * deletedRevision이 특정 버전 이하인 삭제되지 않은 정보를 불러옵니다.
+     * 특정 버전의 유효한 요구사항 정의서 목록 불러오기 deletedRevision이 특정 버전 이하인 삭제되지 않은 정보를 불러옵니다.
      *
      * @return 특정 버전에서 유효한 요구사항 정의서
      */
     @Query(value = """
-SELECT *
-FROM td_requirements r
-WHERE r.project_id = :projectId
-  AND (r.req_id_code, r.revision_count) IN (
-      SELECT r2.req_id_code, MAX(r2.revision_count)
-      FROM td_requirements r2
-      WHERE r2.project_id = :projectId
-        AND r2.revision_count <= :revisionCount
-      GROUP BY r2.req_id_code
-  )
-  AND (r.deleted_revision > :revisionCount OR r.deleted_revision = 0)
-        """, nativeQuery = true)
+            SELECT *
+            FROM td_requirements r
+            WHERE r.project_id = :projectId
+              AND (r.req_id_code, r.revision_count) IN (
+                  SELECT r2.req_id_code, MAX(r2.revision_count)
+                  FROM td_requirements r2
+                  WHERE r2.project_id = :projectId
+                    AND r2.revision_count <= :revisionCount
+                  GROUP BY r2.req_id_code
+              )
+            """, nativeQuery = true)
     List<Requirement> findValidRequirementsByProjectAndRevision(@Param("projectId") Long projectId,
                                                                 @Param("revisionCount") int revisionCount);
 
@@ -56,4 +53,17 @@ WHERE r.project_id = :projectId
      */
     @Query("SELECT r FROM Requirement r WHERE r.reqIdCode = :reqIdCode and r.isDeleted=false")
     Optional<Requirement> findByReqIdCodeAndIsDeletedFalse(@Param("reqIdCode") String id);
+
+    @Query(value = """
+    SELECT r.*
+    FROM td_requirements r
+    INNER JOIN (
+        SELECT r2.req_id_code
+        FROM td_requirements r2
+        WHERE r2.req_pk IN :reqPks
+    ) target_codes ON r.req_id_code = target_codes.req_id_code
+    WHERE r.revision_count <= :revisionCount
+    """, nativeQuery = true)
+    List<Long> findRequirementsByReqPksAndRevision(@Param("reqPks") List<Long> reqPks,
+                                                   @Param("revisionCount") int revisionCount);
 }

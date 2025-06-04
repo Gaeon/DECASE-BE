@@ -29,6 +29,8 @@ public class Source {
     @JoinColumn(name = "req_pk", nullable = false)
     private Requirement requirement;
 
+    private String reqIdCode;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doc_id", nullable = false)
     private Document document;
@@ -39,6 +41,7 @@ public class Source {
 
     public void createSource(Requirement requirement, Document document, int pageNum, String relSentence) {
         this.requirement = requirement;
+        this.reqIdCode = requirement.getReqIdCode();
         this.document = document;
         this.pageNum = pageNum;
         this.relSentence = relSentence;

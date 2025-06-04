@@ -1,8 +1,12 @@
 package com.skala.decase.domain.requirement.mapper;
 
+import static com.mysql.cj.util.TimeUtil.DATE_FORMATTER;
+
 import com.skala.decase.domain.document.domain.Document;
 import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.project.domain.Project;
+import com.skala.decase.domain.requirement.controller.dto.response.RequirementWithSourceResponse;
+import com.skala.decase.domain.requirement.controller.dto.response.SourceResponse;
 import com.skala.decase.domain.requirement.domain.Difficulty;
 import com.skala.decase.domain.requirement.domain.Priority;
 import com.skala.decase.domain.requirement.domain.Requirement;
@@ -10,6 +14,8 @@ import com.skala.decase.domain.requirement.domain.RequirementType;
 import com.skala.decase.domain.requirement.service.dto.response.CreateRfpResponse;
 import com.skala.decase.domain.source.domain.Source;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -51,5 +57,38 @@ public class RequirementServiceMapper {
         return newReq;
     }
 
+    public static RequirementWithSourceResponse toReqWithSrcResponse(Requirement requirement) {
+        List<SourceResponse> sourceResponses = requirement.getSources().stream()
+                .map(RequirementServiceMapper::toSourceResponse)
+                .collect(Collectors.toList());
+
+        return new RequirementWithSourceResponse(
+                requirement.getReqPk(),
+                requirement.getReqIdCode(),
+                requirement.getRevisionCount(),
+                requirement.getType() != null ? requirement.getType().name() : null,
+                requirement.getType() != null ? requirement.getType().name() : null, // status = type으로 가정
+                requirement.getLevel1(),
+                requirement.getLevel2(),
+                requirement.getLevel3(),
+                requirement.getPriority() != null ? requirement.getPriority().name() : null,
+                requirement.getDifficulty() != null ? requirement.getDifficulty().name() : null,
+                requirement.getName(),
+                requirement.getDescription(),
+                requirement.getCreatedDate() != null ? requirement.getCreatedDate().format(DATE_FORMATTER) : null,
+                requirement.getDeletedRevision(),
+                requirement.getModReason(),
+                sourceResponses
+        );
+    }
+
+    private static SourceResponse toSourceResponse(Source source) {
+        return new SourceResponse(
+                source.getSourceId(),
+                source.getDocument() != null ? source.getDocument().getDocId() : null,
+                source.getPageNum(),
+                source.getRelSentence()
+        );
+    }
 
 }
