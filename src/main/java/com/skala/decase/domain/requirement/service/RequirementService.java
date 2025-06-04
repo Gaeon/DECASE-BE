@@ -28,7 +28,7 @@ public class RequirementService {
 	public List<Requirement> getGeneratedRequirements(Long projectId, int revisionCount) {
 		Project project = projectRepository.findById(projectId)
 				.orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트 입니다.", HttpStatus.NOT_FOUND));
-		return requirementRepository.findByProject_AndRevisionCountAndIsDeletedFalse(project, revisionCount);
+		return requirementRepository.findValidRequirementsByProjectAndRevision(project.getProjectId(), revisionCount);
 	}
 
 	public Map<String, List<String>> getRequirementCategory(Long projectId) {
