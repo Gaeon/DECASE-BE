@@ -19,7 +19,8 @@ public class ProjectMemberMapper {
                 memberProject.getMember().getName(),
                 memberProject.getMember().getCompany().getName(),
                 memberProject.getMember().getCompany().getName(),
-                memberProject.getPermission()
+                memberProject.getPermission(),
+                memberProject.isAdmin()
         );
     }
 
