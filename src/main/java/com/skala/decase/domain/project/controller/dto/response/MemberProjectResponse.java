@@ -8,6 +8,7 @@ public record MemberProjectResponse(
         String name,
         String company,
         String department,
-        Permission permission
+        Permission permission,
+        boolean isAdmin
 ) {
 }

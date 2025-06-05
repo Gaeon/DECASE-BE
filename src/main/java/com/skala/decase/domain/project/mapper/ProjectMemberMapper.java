@@ -19,12 +19,17 @@ public class ProjectMemberMapper {
                 memberProject.getMember().getName(),
                 memberProject.getMember().getCompany().getName(),
                 memberProject.getMember().getCompany().getName(),
-                memberProject.getPermission()
+                memberProject.getPermission(),
+                memberProject.isAdmin()
         );
     }
 
     public DeleteMemberResponse deleteSuccess() {
         return new DeleteMemberResponse("멤버가 정상적으로 삭제되었습니다.");
+    }
+
+    public DeleteMemberResponse deleteInvitationSuccess() {
+        return new DeleteMemberResponse("초대가 정상적으로 삭제되었습니다.");
     }
 
     public MemberInvitationResponse toInvite(ProjectInvitation projectInvitation) {
