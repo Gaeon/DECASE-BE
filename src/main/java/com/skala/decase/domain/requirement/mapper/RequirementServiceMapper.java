@@ -62,7 +62,7 @@ public class RequirementServiceMapper {
                 .map(RequirementServiceMapper::toSourceResponse)
                 .collect(Collectors.toList());
 
-        DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
         return new RequirementWithSourceResponse(
                 requirement.getReqPk(),
