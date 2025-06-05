@@ -105,6 +105,14 @@ public class ProjectInvitationService {
     public MemberProjectResponse updateMemberStatus(long projectId, String memberId, ChangeStatusRequest request) {
         MemberProject memberProject = memberProjectRepository.findByProjectIdAndId(projectId, memberId)
                 .orElseThrow(() -> new ProjectException("해당 프로젝트에 멤버가 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+        MemberProject adminMemberProject = memberProjectRepository.findByProjectIdAndMemberId(projectId, request.adminId());
+
+        if (!adminMemberProject.isAdmin()) {
+            throw new ProjectException("초대 권한이 없습니다.", HttpStatus.BAD_REQUEST);
+        }
+        if (adminMemberProject.getMember().getId().equals(memberId)) {
+            throw new ProjectException("Admin의 권한을 변경할 수 없습니다.", HttpStatus.BAD_REQUEST);
+        }
 
         memberProject.setPermission(request.permission());
         memberProjectRepository.save(memberProject);
