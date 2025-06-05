@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -129,7 +130,7 @@ public class DocumentService {
     //     documentRepository.deleteById(docId);
     // }
 
-    // 사용자 업로드 파일 다운로드
+    // 파일 다운로드
     public ResponseEntity<byte[]> downloadDocument(String docId) throws IOException {
         Document doc = documentRepository.findById(docId)
 				.orElseThrow(() -> new DocumentException("문서를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
@@ -190,7 +191,7 @@ public class DocumentService {
         org.springframework.core.io.ByteArrayResource resource = new org.springframework.core.io.ByteArrayResource(Files.readAllBytes(filePath));
 
         return ResponseEntity.ok()
-                .contentType(org.springframework.http.MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"))
+                .contentType(MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + doc.getName() + "\"")
                 .body(resource);
     }

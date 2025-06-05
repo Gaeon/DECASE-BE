@@ -6,6 +6,7 @@ import com.skala.decase.domain.document.controller.dto.DocumentDetailResponse;
 import com.skala.decase.domain.document.controller.dto.DocumentResponse;
 import com.skala.decase.domain.document.service.DocumentService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -25,6 +26,7 @@ public class DocumentController {
     private final DocumentService documentService;
     private final ObjectMapper objectMapper;
 
+    @Operation(summary = "사용자 문서 업로드", description = "사용자의 문서 업로드를 위한 API")
     @PostMapping(value = "/projects/{projectId}/documents/uploads", consumes = "multipart/form-data")
     public ResponseEntity<List<DocumentResponse>> uploadDocuments(
             @PathVariable Long projectId,
@@ -42,22 +44,26 @@ public class DocumentController {
     //     return ResponseEntity.noContent().build();
     // }
 
+    @Operation(summary = "문서 다운로드", description = "문서 다운로드를 위한 API")
     @PostMapping("/documents/{docId}/downloads")
     public ResponseEntity<byte[]> downloadDocument(@PathVariable String docId) throws Exception {
         return documentService.downloadDocument(docId);
     }
 
+    @Operation(summary = "개별 문서 상세 정보 조회", description = "문서 상세 정보 조회를 위한 API")
     @GetMapping("/documents/{docId}")
     public ResponseEntity<DocumentDetailResponse> getDocumentDetail(@PathVariable String docId) throws Exception {
         return documentService.getDocumentDetails(docId);
     }
 
     // 요구사항 리비전에 따른 문서 목록
+    @Operation(summary = "사용자 업로드 문서 목록 조회", description = "사용자 업로드 문서 목록 조회를 위한 API")
     @GetMapping("/projects/{projectId}/document/uploads")
     public ResponseEntity<List<DocumentResponse>> getDocumentUploads(@PathVariable Long projectId) throws Exception {
         return documentService.getDocumentUploads(projectId);
     }
 
+    @Operation(summary = "저장된 문서 프리뷰", description = "문서 프리뷰를 위한 API")
     @GetMapping("/documents/{docId}/preview")
     public ResponseEntity<Resource> previewDocument(@PathVariable String docId) throws IOException {
         return documentService.previewDocument(docId);
