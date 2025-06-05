@@ -32,15 +32,11 @@ public class RequirementController {
             @PathVariable Long projectId,
             @RequestParam(required = false) Integer revisionCount) {
 
-        List<Requirement> requirements = (revisionCount == null)
+        List<RequirementWithSourceResponse> requirements = (revisionCount == null)
                 ? repositoryService.getGeneratedRequirements(projectId)
                 : repositoryService.getGeneratedRequirements(projectId, revisionCount);
 
-        List<RequirementWithSourceResponse> dtoList = requirements.stream()
-                .map(RequirementServiceMapper::toReqWithSrcResponse)
-                .toList();
-
-        return ResponseEntity.ok(dtoList);
+        return ResponseEntity.ok(requirements);
     }
 
     // 프로젝트의 요구사항 분류(대/중/소) 불러오기

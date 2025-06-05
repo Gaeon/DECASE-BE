@@ -57,7 +57,7 @@ public class RequirementServiceMapper {
         return newReq;
     }
 
-    public static RequirementWithSourceResponse toReqWithSrcResponse(Requirement requirement) {
+    public static RequirementWithSourceResponse toReqWithSrcResponse(Requirement requirement, List<String> modReason) {
         List<SourceResponse> sourceResponses = requirement.getSources().stream()
                 .map(RequirementServiceMapper::toSourceResponse)
                 .collect(Collectors.toList());
@@ -76,8 +76,9 @@ public class RequirementServiceMapper {
                 requirement.getName(),
                 requirement.getDescription(),
                 requirement.getCreatedDate() != null ? requirement.getCreatedDate().format(DATE_FORMATTER) : null,
+                requirement.isDeleted(),
                 requirement.getDeletedRevision(),
-                requirement.getModReason(),
+                modReason,
                 sourceResponses
         );
     }

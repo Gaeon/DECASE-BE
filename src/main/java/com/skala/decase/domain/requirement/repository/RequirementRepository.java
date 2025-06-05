@@ -64,6 +64,6 @@ public interface RequirementRepository extends JpaRepository<Requirement, Long> 
     ) target_codes ON r.req_id_code = target_codes.req_id_code
     WHERE r.revision_count <= :revisionCount
     """, nativeQuery = true)
-    List<Long> findRequirementsByReqPksAndRevision(@Param("reqPks") List<Long> reqPks,
+    List<Requirement> findRequirementsByReqPksAndRevision(@Param("reqPks") List<Long> reqPks,
                                                    @Param("revisionCount") int revisionCount);
 }

@@ -16,8 +16,9 @@ public record RequirementWithSourceResponse(
         String name,
         String description,
         String createdDate,
+        boolean isDeleted,
         int deletedRevision,
-        String modReason,
+        List<String> modReason,
         List<SourceResponse> sources
 ) {
 }
