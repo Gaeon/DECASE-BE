@@ -1,7 +1,7 @@
 package com.skala.decase.domain.project.controller.dto.request;
 
-public record DeleteMemberInvitationRequest(
+public record DeleteMemberRequest(
         long adminId,
-        String email
+        String memberId
 ) {
 }

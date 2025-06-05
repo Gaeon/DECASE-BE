@@ -3,6 +3,7 @@ package com.skala.decase.domain.project.controller;
 import com.skala.decase.domain.project.controller.dto.request.ChangeStatusRequest;
 import com.skala.decase.domain.project.controller.dto.request.CreateMemberProjectRequest;
 import com.skala.decase.domain.project.controller.dto.request.DeleteMemberInvitationRequest;
+import com.skala.decase.domain.project.controller.dto.request.DeleteMemberRequest;
 import com.skala.decase.domain.project.controller.dto.response.*;
 import com.skala.decase.domain.project.service.ProjectInvitationService;
 import com.skala.decase.global.model.ApiResponse;
@@ -73,9 +74,9 @@ public class ProjectMemberController {
     }
 
     @Operation(summary = "프로젝트 멤버 삭제", description = "프로젝트 멤버 삭제를 위한 API입니다.")
-    @DeleteMapping("/{projectId}/members/{memberId}")
-    public ResponseEntity<ApiResponse<DeleteMemberResponse>> deleteMember(@PathVariable("projectId") long projectId, @PathVariable("memberId") String memberId) {
-        DeleteMemberResponse response = projectInvitationService.deleteMember(projectId, memberId);
+    @DeleteMapping("/{projectId}/members")
+    public ResponseEntity<ApiResponse<DeleteMemberResponse>> deleteMember(@PathVariable("projectId") long projectId, @RequestBody DeleteMemberRequest request) {
+        DeleteMemberResponse response = projectInvitationService.deleteMember(projectId, request);
         return ResponseEntity.ok()
                 .body(ApiResponse.success(response));
     }
