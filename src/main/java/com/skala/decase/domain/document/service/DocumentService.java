@@ -12,8 +12,10 @@ import com.skala.decase.domain.project.domain.Project;
 
 import com.skala.decase.domain.project.exception.ProjectException;
 import com.skala.decase.domain.project.repository.ProjectRepository;
+import java.net.MalformedURLException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -170,7 +172,10 @@ public class DocumentService {
         return ResponseEntity.ok(responseList);
     }
 
-    public ResponseEntity<Resource> previewDocument(String docId) throws IOException {
+    /**
+     * 파일 프리뷰 전송
+     */
+    public Resource previewDocument(String docId) {
         Document doc = documentRepository.findById(docId)
                 .orElseThrow(() -> new DocumentException("문서를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
@@ -179,12 +184,10 @@ public class DocumentService {
             throw new DocumentException("파일이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
         }
 
-        String contentType = Files.probeContentType(filePath);
-        org.springframework.core.io.ByteArrayResource resource = new org.springframework.core.io.ByteArrayResource(Files.readAllBytes(filePath));
-
-        return ResponseEntity.ok()
-                .contentType(org.springframework.http.MediaType.parseMediaType(contentType != null ? contentType : "application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + doc.getName() + "\"")
-                .body(resource);
+        try {
+            return new UrlResource(filePath.toUri());
+        } catch (MalformedURLException e) {
+            throw new DocumentException("파일 경로가 잘못되었습니다: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

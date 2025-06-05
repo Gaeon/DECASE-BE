@@ -6,9 +6,14 @@ import com.skala.decase.domain.document.controller.dto.DocumentDetailResponse;
 import com.skala.decase.domain.document.controller.dto.DocumentResponse;
 import com.skala.decase.domain.document.service.DocumentService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -58,8 +63,20 @@ public class DocumentController {
         return documentService.getDocumentUploads(projectId);
     }
 
+    @Operation(summary = "문서 미리보기", description = "사용자가 업로드한 문서의 미리보기를 지원합니다.")
     @GetMapping("/documents/{docId}/preview")
-    public ResponseEntity<Resource> previewDocument(@PathVariable String docId) throws IOException {
-        return documentService.previewDocument(docId);
+    public ResponseEntity<Resource> previewDocument(@PathVariable String docId){
+        Resource resource=documentService.previewDocument(docId);
+
+        //파일 이름 인코딩
+        String filename = resource.getFilename();
+        System.out.println(filename);
+        String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename*=UTF-8''" + encodedFilename)
+                .body(resource);
     }
 }
