@@ -82,6 +82,10 @@ public class ProjectInvitationService {
             throw new ProjectException("초대 링크가 만료되었습니다.", HttpStatus.GONE);
         }
 
+        if (projectInvitation.isAccepted()) {
+            throw new ProjectException("이미 참여 완료되었습니다.", HttpStatus.GONE);
+        }
+
         Member newMember = memberService.findByMail(projectInvitation.getEmail());
 
         if (newMember == null) {
@@ -172,6 +176,19 @@ public class ProjectInvitationService {
 
         projectInvitationRepository.delete(projectInvitation);
         return projectMemberMapper.deleteInvitationSuccess();
+    }
+
+    public InvitationInfoResponse findMemberProjectByToken(String token) {
+        ProjectInvitation projectInvitation = projectInvitationRepository.findByToken(token);
+        if (projectInvitation == null) {
+            throw new ProjectException("유효하지 않은 토큰입니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        Project project = projectInvitation.getProject();
+        MemberProject memberProject = memberProjectRepository.findByProjectId(project.getProjectId())
+                .stream().filter(MemberProject::isAdmin).distinct().toList().get(0);
+        Member admin = memberProject.getMember();
+        return projectMemberMapper.toInviteResponse(project, admin);
     }
 }
 // 스케줄러로 유효기간 지나면 삭제 ?

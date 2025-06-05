@@ -96,4 +96,12 @@ public class ProjectMemberController {
         return ResponseEntity.ok()
                 .body(ApiResponse.success(response));
     }
+
+    @Operation(summary = "프로젝트 초대 정보 조회", description = "프로젝트 초대 정보 조회를 위한 API입니다.")
+    @GetMapping("/members/invitation/{token}")
+    public ResponseEntity<ApiResponse<InvitationInfoResponse>> findMemberProjectByToken(@PathVariable("token") String token) {
+        InvitationInfoResponse response = projectInvitationService.findMemberProjectByToken(token);
+        return ResponseEntity.ok()
+                .body(ApiResponse.success(response));
+    }
 }

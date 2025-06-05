@@ -1,9 +1,12 @@
 package com.skala.decase.domain.project.mapper;
 
+import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.project.controller.dto.response.DeleteMemberResponse;
+import com.skala.decase.domain.project.controller.dto.response.InvitationInfoResponse;
 import com.skala.decase.domain.project.controller.dto.response.MemberInvitationResponse;
 import com.skala.decase.domain.project.controller.dto.response.MemberProjectResponse;
 import com.skala.decase.domain.project.domain.MemberProject;
+import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.domain.ProjectInvitation;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -37,6 +40,14 @@ public class ProjectMemberMapper {
                 projectInvitation.getEmail(),
                 projectInvitation.isAccepted(),
                 projectInvitation.getPermission()
+        );
+    }
+
+    public InvitationInfoResponse toInviteResponse(Project project, Member admin) {
+        return new InvitationInfoResponse(
+                project.getProjectId(),
+                project.getName(),
+                admin.getName()
         );
     }
 }
