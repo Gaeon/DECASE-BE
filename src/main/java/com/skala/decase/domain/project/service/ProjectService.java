@@ -1,9 +1,11 @@
 package com.skala.decase.domain.project.service;
 
+import com.skala.decase.domain.document.domain.Document;
 import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.member.service.MemberService;
 import com.skala.decase.domain.project.controller.dto.request.CreateProjectRequest;
 import com.skala.decase.domain.project.controller.dto.response.EditProjectResponseDto;
+import com.skala.decase.domain.project.controller.dto.response.MappingTableResponseDto;
 import com.skala.decase.domain.project.controller.dto.response.ProjectDetailResponseDto;
 import com.skala.decase.domain.project.controller.dto.response.ProjectResponse;
 import com.skala.decase.domain.project.domain.MemberProject;
@@ -15,14 +17,22 @@ import com.skala.decase.domain.project.mapper.ProjectMapper;
 import com.skala.decase.domain.member.repository.MemberProjectRepository;
 import com.skala.decase.domain.project.repository.ProjectInvitationRepository;
 import com.skala.decase.domain.project.repository.ProjectRepository;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import com.skala.decase.domain.requirement.domain.Requirement;
-import com.skala.decase.domain.requirement.repository.RequirementRepository;
+import com.skala.decase.domain.requirement.domain.RequirementDocument;
+import com.skala.decase.domain.requirement.repository.RequirementDocumentRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +44,7 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final MemberProjectRepository memberProjectRepository;
     private final ProjectInvitationRepository projectInvitationRepository;
+    private final RequirementDocumentRepository requirementDocumentRepository;
 
     private final MemberService memberService;
 
@@ -119,9 +130,9 @@ public class ProjectService {
         return "프로젝트가 삭제되었습니다.";
     }
 
+    // 단일 프로젝트 상세 설명
     public ProjectDetailResponseDto getProject(Long projectId) {
         Project project = findByProjectId(projectId);
-
 
         return new ProjectDetailResponseDto(
                 project.getProjectId(),
@@ -132,5 +143,72 @@ public class ProjectService {
                 project.getDescription(),
                 project.getProposalPM()
         );
+    }
+
+    private String getDocName(Requirement requirement) {
+        Document document = requirementDocumentRepository.findByRequirement(requirement).getDocument();
+        return document.getName();
+    }
+
+    private int getPageNum(Requirement requirement) {
+        RequirementDocument requirementDocument = requirementDocumentRepository.findByRequirement(requirement);
+        return requirementDocument.getPageNum();
+    }
+
+    private String getRelSentence(Requirement requirement) {
+        RequirementDocument requirementDocument = requirementDocumentRepository.findByRequirement(requirement);
+        return requirementDocument.getRelSentence();
+    }
+
+    // 조견표 리스트 생성
+    private List<MappingTableResponseDto> createMappingTable(Long projectId) {
+        Project project = findByProjectId(projectId);
+        List<MappingTableResponseDto> responseList = project.getRequirements().stream()
+                .filter(req -> !req.isDeleted())
+                .map(req -> new MappingTableResponseDto(
+                        req.getReqIdCode(),
+                        req.getName(),
+                        req.getDescription(),
+                        getDocName(req),
+                        getPageNum(req),
+                        getRelSentence(req)
+                ))
+                .toList();
+
+        return responseList;
+    }
+
+    // 조견표 출력
+    public byte[] exportMappingTableToExcel(Long projectId) throws IOException {
+        List<MappingTableResponseDto> list = createMappingTable(projectId);
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Mapping Table");
+
+        // 1. 헤더 작성
+        Row headerRow = sheet.createRow(0);
+        String[] headers = {"요구사항 ID", "요구사항명", "설명", "출처 문서명", "페이지 번호", "관련 문장"};
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+        }
+
+        // 2. 내용 채우기
+        int rowIdx = 1;
+        for (MappingTableResponseDto dto : list) {
+            Row row = sheet.createRow(rowIdx++);
+            row.createCell(0).setCellValue(dto.req_code());
+            row.createCell(1).setCellValue(dto.name());
+            row.createCell(2).setCellValue(dto.description());
+            row.createCell(3).setCellValue(dto.docName());
+            row.createCell(4).setCellValue(dto.pageNum());
+            row.createCell(5).setCellValue(dto.relSentence());
+        }
+
+        // 3. 엑셀 파일을 byte[]로 변환 (서버에서 다운로드 응답용)
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        workbook.write(out);
+        workbook.close();
+        return out.toByteArray();
     }
 }
