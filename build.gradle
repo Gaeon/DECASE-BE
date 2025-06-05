@@ -53,6 +53,10 @@ dependencies {
 
 	//mail
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	//파일 미리보기
+	implementation 'org.apache.poi:poi-ooxml:5.2.4'
+	implementation 'org.apache.poi:poi-scratchpad:5.2.4'
 }
 
 tasks.named('test') {

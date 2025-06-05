@@ -3,6 +3,7 @@ package com.skala.decase.domain.document.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skala.decase.domain.document.controller.dto.DocumentDetailResponse;
+import com.skala.decase.domain.document.controller.dto.DocumentPreviewDto;
 import com.skala.decase.domain.document.controller.dto.DocumentResponse;
 import com.skala.decase.domain.document.service.DocumentService;
 
@@ -61,22 +62,5 @@ public class DocumentController {
     @GetMapping("/projects/{projectId}/document/uploads")
     public ResponseEntity<List<DocumentResponse>> getDocumentUploads(@PathVariable Long projectId) throws Exception {
         return documentService.getDocumentUploads(projectId);
-    }
-
-    @Operation(summary = "문서 미리보기", description = "사용자가 업로드한 문서의 미리보기를 지원합니다.")
-    @GetMapping("/documents/{docId}/preview")
-    public ResponseEntity<Resource> previewDocument(@PathVariable String docId){
-        Resource resource=documentService.previewDocument(docId);
-
-        //파일 이름 인코딩
-        String filename = resource.getFilename();
-        System.out.println(filename);
-        String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8)
-                .replaceAll("\\+", "%20");
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_PDF)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename*=UTF-8''" + encodedFilename)
-                .body(resource);
     }
 }

@@ -1,6 +1,7 @@
 package com.skala.decase.domain.document.service;
 
 import com.skala.decase.domain.document.controller.dto.DocumentDetailResponse;
+import com.skala.decase.domain.document.controller.dto.DocumentPreviewDto;
 import com.skala.decase.domain.document.domain.Document;
 import com.skala.decase.domain.document.controller.dto.DocumentResponse;
 import com.skala.decase.domain.document.exception.DocumentException;
@@ -12,8 +13,21 @@ import com.skala.decase.domain.project.domain.Project;
 
 import com.skala.decase.domain.project.exception.ProjectException;
 import com.skala.decase.domain.project.repository.ProjectRepository;
+import java.io.FileInputStream;
 import java.net.MalformedURLException;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableCell;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -140,7 +154,7 @@ public class DocumentService {
     }
 
     // 파일 상세 정보 조회
-    public ResponseEntity<DocumentDetailResponse> getDocumentDetails(String docId) throws IOException {
+    public ResponseEntity<DocumentDetailResponse> getDocumentDetails(String docId) {
         Document doc = documentRepository.findById(docId)
                 .orElseThrow(() -> new DocumentException("문서를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
@@ -158,7 +172,7 @@ public class DocumentService {
         return new ResponseEntity<>(docDetailResponse, HttpStatus.OK);
     }
 
-    public ResponseEntity<List<DocumentResponse>> getDocumentUploads(Long projectId) throws IOException {
+    public ResponseEntity<List<DocumentResponse>> getDocumentUploads(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ProjectException("프로젝트를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
@@ -172,22 +186,4 @@ public class DocumentService {
         return ResponseEntity.ok(responseList);
     }
 
-    /**
-     * 파일 프리뷰 전송
-     */
-    public Resource previewDocument(String docId) {
-        Document doc = documentRepository.findById(docId)
-                .orElseThrow(() -> new DocumentException("문서를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
-
-        Path filePath = Paths.get(doc.getPath());
-        if (!Files.exists(filePath)) {
-            throw new DocumentException("파일이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
-        }
-
-        try {
-            return new UrlResource(filePath.toUri());
-        } catch (MalformedURLException e) {
-            throw new DocumentException("파일 경로가 잘못되었습니다: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 }
