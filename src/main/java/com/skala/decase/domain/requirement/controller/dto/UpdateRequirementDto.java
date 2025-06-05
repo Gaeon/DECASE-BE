@@ -41,7 +41,7 @@ public class UpdateRequirementDto {
 		requirement.setDifficulty(this.getDifficulty());
 		requirement.setDeleted(false);
 		requirement.setCreatedDate(LocalDateTime.now());
-		requirement.setModifiedDate(LocalDateTime.now());
+		requirement.setDeletedRevision(0);
 		return requirement;
 	}
 }

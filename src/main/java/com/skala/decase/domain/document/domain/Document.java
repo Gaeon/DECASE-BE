@@ -2,7 +2,7 @@ package com.skala.decase.domain.document.domain;
 
 import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.project.domain.Project;
-import com.skala.decase.domain.requirement.domain.RequirementDocument;
+import com.skala.decase.domain.source.domain.Source;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -52,5 +52,5 @@ public class Document {
     private Member createdBy;
 
     @OneToMany(mappedBy = "document", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RequirementDocument> requirementDocuments;
+    private List<Source> sources;  // 출처
 }
