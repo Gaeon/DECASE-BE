@@ -28,6 +28,10 @@ public class ProjectMemberMapper {
         return new DeleteMemberResponse("멤버가 정상적으로 삭제되었습니다.");
     }
 
+    public DeleteMemberResponse deleteInvitationSuccess() {
+        return new DeleteMemberResponse("초대가 정상적으로 삭제되었습니다.");
+    }
+
     public MemberInvitationResponse toInvite(ProjectInvitation projectInvitation) {
         return new MemberInvitationResponse(
                 projectInvitation.getEmail(),

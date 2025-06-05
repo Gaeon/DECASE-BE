@@ -13,4 +13,5 @@ public interface ProjectInvitationRepository extends JpaRepository<ProjectInvita
 
     List<ProjectInvitation> findAllByProject(Project project);
 
+    ProjectInvitation findByProjectAndEmail(Project project, String email);
 }

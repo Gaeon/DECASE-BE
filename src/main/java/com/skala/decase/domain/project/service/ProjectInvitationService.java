@@ -5,6 +5,7 @@ import com.skala.decase.domain.member.repository.MemberProjectRepository;
 import com.skala.decase.domain.member.service.MemberService;
 import com.skala.decase.domain.project.controller.dto.request.ChangeStatusRequest;
 import com.skala.decase.domain.project.controller.dto.request.CreateMemberProjectRequest;
+import com.skala.decase.domain.project.controller.dto.request.DeleteMemberInvitationRequest;
 import com.skala.decase.domain.project.controller.dto.response.*;
 import com.skala.decase.domain.project.domain.MemberProject;
 import com.skala.decase.domain.project.domain.Project;
@@ -122,5 +123,23 @@ public class ProjectInvitationService {
         List<ProjectInvitation> projectInvitations = projectInvitationRepository.findAllByProject(project);
 
         return projectInvitations.stream().map(projectMemberMapper::toInvite).toList();
+    }
+
+    public DeleteMemberResponse deleteMemberInvitation(long projectId, DeleteMemberInvitationRequest request) {
+        MemberProject memberProject = memberProjectRepository.findByProjectIdAndMemberId(projectId, request.adminId());
+        ProjectInvitation projectInvitation = projectInvitationRepository.findByToken(request.token());
+
+        if (!memberProject.isAdmin()) {
+            throw new ProjectException("권한이 없습니다.", HttpStatus.BAD_REQUEST);
+        }
+        if (projectInvitation.isAccepted()) {
+            throw new ProjectException("이미 수락된 초대입니다.", HttpStatus.BAD_REQUEST);
+        }
+        if (!projectInvitation.getToken().equals(request.token())) {
+            throw new ProjectException("유효하지 않은 토큰입니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        projectInvitationRepository.delete(projectInvitation);
+        return projectMemberMapper.deleteInvitationSuccess();
     }
 }
