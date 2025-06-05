@@ -42,17 +42,18 @@ public class DocumentService {
 
     // 문서 타입 매핑
     private static final Map<Integer, String> TYPE_PREFIX_MAP = Map.of(
-            1, "RFP",
-            2, "MOMV",
-            3, "MOMD",
-            4, "EXTRA",
-            5, "REQ",
-            6, "QFS",
-            7, "MATRIX"
+            1, "RFP",     // RFP 파일
+            2, "MOMV",    // 회의록 음성
+            3, "MOMD",    // 회의록 문서
+            4, "EXTRA",   // 기타
+            5, "REQ",     // 요구사항정의서
+            6, "QFS",     // 조견표
+            7, "MATRIX",  // 요구사항 추적 매트릭스
+            8, "ASIS"     // AS-IS 보고서
     );
     private final MemberRepository memberRepository;
 
-    // Doc ID 찾기
+    // Doc ID 생성
     public String generateDocId(String typePrefix) {
         Optional<String> latestIdOpt = documentRepository.findLatestDocIdByPrefix(typePrefix);
         int nextNumber = 1;
@@ -76,20 +77,21 @@ public class DocumentService {
 			throw new DocumentException("파일 수와 타입 수가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
 
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new DocumentException("유효하지 않은 프로젝트 ID: " + projectId, HttpStatus.NOT_FOUND));
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException("유효하지 않은 사용자 ID: " + memberId, HttpStatus.NOT_FOUND));
+
         List<DocumentResponse> responses = new ArrayList<>();
 
         for (int i = 0; i < files.size(); i++) {
             MultipartFile file = files.get(i);
             int iType = types.get(i);
 
-            if (iType < 1 || iType > 7) {
+            if (iType < 1 || iType > 8) {
                 throw new DocumentException("유효하지 않은 문서 타입: " + iType, HttpStatus.BAD_REQUEST);
             }
 
-			Project project = projectRepository.findById(projectId)
-					.orElseThrow(() -> new DocumentException("유효하지 않은 프로젝트 ID: " + projectId, HttpStatus.NOT_FOUND));
-            Member member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> new MemberException("유효하지 않은 사용자 ID: " + memberId, HttpStatus.NOT_FOUND));
             // 파일 저장
             String fileName = System.currentTimeMillis() + "_" + StringUtils.cleanPath(file.getOriginalFilename());
             Path uploadPath = Paths.get(BASE_UPLOAD_PATH);
@@ -114,6 +116,9 @@ public class DocumentService {
 
             responses.add(new DocumentResponse(doc.getDocId(), doc.getName()));
         }
+
+        // 리비전 카운트 증가
+        project.setRevisionCount(project.getRevisionCount() + 1);
 
         return responses;
     }
@@ -156,6 +161,7 @@ public class DocumentService {
         return new ResponseEntity<>(docDetailResponse, HttpStatus.OK);
     }
 
+    // 사용자 업로드 파일 조회
     public ResponseEntity<List<DocumentResponse>> getDocumentUploads(Long projectId) throws IOException {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ProjectException("프로젝트를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
@@ -170,6 +176,7 @@ public class DocumentService {
         return ResponseEntity.ok(responseList);
     }
 
+    // 파일 미리보기
     public ResponseEntity<Resource> previewDocument(String docId) throws IOException {
         Document doc = documentRepository.findById(docId)
                 .orElseThrow(() -> new DocumentException("문서를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
