@@ -1,6 +1,5 @@
 package com.skala.decase.domain.requirement.mapper;
 
-import static com.mysql.cj.util.TimeUtil.DATE_FORMATTER;
 
 import com.skala.decase.domain.document.domain.Document;
 import com.skala.decase.domain.member.domain.Member;
@@ -14,6 +13,7 @@ import com.skala.decase.domain.requirement.domain.RequirementType;
 import com.skala.decase.domain.requirement.service.dto.response.CreateRfpResponse;
 import com.skala.decase.domain.source.domain.Source;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -61,6 +61,8 @@ public class RequirementServiceMapper {
         List<SourceResponse> sourceResponses = requirement.getSources().stream()
                 .map(RequirementServiceMapper::toSourceResponse)
                 .collect(Collectors.toList());
+
+        DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         return new RequirementWithSourceResponse(
                 requirement.getReqPk(),

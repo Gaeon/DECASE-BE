@@ -2,6 +2,7 @@ package com.skala.decase.domain.project.controller;
 
 import com.skala.decase.domain.project.controller.dto.request.CreateProjectRequest;
 import com.skala.decase.domain.project.controller.dto.response.EditProjectResponseDto;
+import com.skala.decase.domain.project.controller.dto.response.ProjectDetailResponseDto;
 import com.skala.decase.domain.project.controller.dto.response.ProjectResponse;
 import com.skala.decase.domain.project.domain.ProjectApiDocument;
 import com.skala.decase.domain.project.service.ProjectService;
@@ -46,7 +47,13 @@ public class ProjectController {
     @DeleteMapping("{projectId}")
     public ResponseEntity<String> deleteProject(
             @PathVariable Long projectId){
-        projectService.deleteProject(projectId);
-        return ResponseEntity.ok("프로젝트가 삭제되었습니다.");
+        return ResponseEntity.ok(projectService.deleteProject(projectId));
+    }
+
+    // 단일 프로젝트 조회
+    @GetMapping("{projectId}")
+    public ProjectDetailResponseDto getProject(
+            @PathVariable Long projectId) {
+        return projectService.getProject(projectId);
     }
 }

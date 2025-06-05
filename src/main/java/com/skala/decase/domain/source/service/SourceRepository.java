@@ -1,5 +1,6 @@
 package com.skala.decase.domain.source.service;
 
+import com.skala.decase.domain.requirement.domain.Requirement;
 import com.skala.decase.domain.source.domain.Source;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,4 +27,6 @@ public interface SourceRepository extends JpaRepository<Source, Long> {
             WHERE s.req_pk IN :reqPks
             """, nativeQuery = true)
     List<Source> findByRequirementReqPks(@Param("reqPks") List<Long> reqPks);
+
+    Source findByRequirement(Requirement requirement);
 }

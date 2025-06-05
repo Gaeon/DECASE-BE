@@ -13,10 +13,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "TD_SOURCE")
 @Getter
+@Setter
 @NoArgsConstructor
 public class Source {
 
@@ -46,4 +48,5 @@ public class Source {
         this.pageNum = pageNum;
         this.relSentence = relSentence;
     }
+
 }

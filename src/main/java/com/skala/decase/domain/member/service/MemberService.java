@@ -25,8 +25,12 @@ public class MemberService {
 
     }
 
-    public MemberResponse findUserInfo(String memberId) {
-        return memberMapper.toResponse(memberRepository.findByMemberId(memberId)
+    public MemberResponse findUserInfo(Long memberId) {
+        return memberMapper.toResponse(memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException("존재하지 않는 사용자입니다.", HttpStatus.NOT_FOUND)));
+    }
+
+    public Member findByMail(String email) {
+        return memberRepository.findByEmail(email).orElse(null);
     }
 }

@@ -4,13 +4,16 @@ import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.member.service.MemberService;
 import com.skala.decase.domain.project.controller.dto.request.CreateProjectRequest;
 import com.skala.decase.domain.project.controller.dto.response.EditProjectResponseDto;
+import com.skala.decase.domain.project.controller.dto.response.ProjectDetailResponseDto;
 import com.skala.decase.domain.project.controller.dto.response.ProjectResponse;
 import com.skala.decase.domain.project.domain.MemberProject;
 import com.skala.decase.domain.project.domain.Project;
+import com.skala.decase.domain.project.domain.ProjectInvitation;
 import com.skala.decase.domain.project.exception.ProjectException;
 import com.skala.decase.domain.project.mapper.MemberProjectMapper;
 import com.skala.decase.domain.project.mapper.ProjectMapper;
 import com.skala.decase.domain.member.repository.MemberProjectRepository;
+import com.skala.decase.domain.project.repository.ProjectInvitationRepository;
 import com.skala.decase.domain.project.repository.ProjectRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +22,7 @@ import com.skala.decase.domain.requirement.domain.Requirement;
 import com.skala.decase.domain.requirement.repository.RequirementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +33,7 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final MemberProjectRepository memberProjectRepository;
+    private final ProjectInvitationRepository projectInvitationRepository;
 
     private final MemberService memberService;
 
@@ -107,8 +112,25 @@ public class ProjectService {
 
     @Transactional
     public String deleteProject(Long projectId) {
+        projectInvitationRepository.deleteByProject_ProjectId(projectId);
+        memberProjectRepository.deleteByProject_ProjectId(projectId);
         Project project = findByProjectId(projectId);
         projectRepository.delete(project);
         return "프로젝트가 삭제되었습니다.";
+    }
+
+    public ProjectDetailResponseDto getProject(Long projectId) {
+        Project project = findByProjectId(projectId);
+
+
+        return new ProjectDetailResponseDto(
+                project.getProjectId(),
+                project.getName(),
+                project.getScale(),
+                project.getStartDate(),
+                project.getEndDate(),
+                project.getDescription(),
+                project.getProposalPM()
+        );
     }
 }
