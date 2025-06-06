@@ -1,59 +1,48 @@
 package com.skala.decase.domain.document.service;
 
 import com.skala.decase.domain.document.controller.dto.DocumentDetailResponse;
-import com.skala.decase.domain.document.controller.dto.DocumentPreviewDto;
-import com.skala.decase.domain.document.domain.Document;
 import com.skala.decase.domain.document.controller.dto.DocumentResponse;
+import com.skala.decase.domain.document.domain.Document;
 import com.skala.decase.domain.document.exception.DocumentException;
 import com.skala.decase.domain.document.repository.DocumentRepository;
 import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.member.exception.MemberException;
 import com.skala.decase.domain.member.repository.MemberRepository;
 import com.skala.decase.domain.project.domain.Project;
-
 import com.skala.decase.domain.project.exception.ProjectException;
 import com.skala.decase.domain.project.repository.ProjectRepository;
-import java.io.FileInputStream;
-import java.net.MalformedURLException;
-import lombok.RequiredArgsConstructor;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.DateUtil;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
-import org.apache.poi.xwpf.usermodel.XWPFParagraph;
-import org.apache.poi.xwpf.usermodel.XWPFTable;
-import org.apache.poi.xwpf.usermodel.XWPFTableCell;
-import org.apache.poi.xwpf.usermodel.XWPFTableRow;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
-import java.nio.file.*;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
 public class DocumentService {
 
     private final DocumentRepository documentRepository;
-	private final ProjectRepository projectRepository;
+    private final ProjectRepository projectRepository;
 
-	// 로컬 파일 업로드 경로
+    // 로컬 파일 업로드 경로
     private final static String BASE_UPLOAD_PATH = "DECASE/upload";
 
     // 문서 타입 매핑
@@ -64,7 +53,8 @@ public class DocumentService {
             4, "EXTRA",
             5, "REQ",
             6, "QFS",
-            7, "MATRIX"
+            7, "MATRIX",
+            8, "ASIS"
     );
     private final MemberRepository memberRepository;
 
@@ -87,9 +77,10 @@ public class DocumentService {
     }
 
     // 사용자 업로드
-    public List<DocumentResponse> uploadDocuments(Long projectId, Long memberId, List<MultipartFile> files, List<Integer> types) throws IOException {
+    public List<DocumentResponse> uploadDocuments(Long projectId, Long memberId, List<MultipartFile> files,
+                                                  List<Integer> types) throws IOException {
         if (files.size() != types.size()) {
-			throw new DocumentException("파일 수와 타입 수가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
+            throw new DocumentException("파일 수와 타입 수가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
 
         List<DocumentResponse> responses = new ArrayList<>();
@@ -98,12 +89,12 @@ public class DocumentService {
             MultipartFile file = files.get(i);
             int iType = types.get(i);
 
-            if (iType < 1 || iType > 7) {
+            if (iType < 1 || iType > 8) {
                 throw new DocumentException("유효하지 않은 문서 타입: " + iType, HttpStatus.BAD_REQUEST);
             }
 
-			Project project = projectRepository.findById(projectId)
-					.orElseThrow(() -> new DocumentException("유효하지 않은 프로젝트 ID: " + projectId, HttpStatus.NOT_FOUND));
+            Project project = projectRepository.findById(projectId)
+                    .orElseThrow(() -> new DocumentException("유효하지 않은 프로젝트 ID: " + projectId, HttpStatus.NOT_FOUND));
             Member member = memberRepository.findById(memberId)
                     .orElseThrow(() -> new MemberException("유효하지 않은 사용자 ID: " + memberId, HttpStatus.NOT_FOUND));
             // 파일 저장
@@ -140,17 +131,62 @@ public class DocumentService {
     //     documentRepository.deleteById(docId);
     // }
 
-    // 사용자 업로드 파일 다운로드
-    public ResponseEntity<byte[]> downloadDocument(String docId) throws IOException {
+    /**
+     * 사용자 업로드 파일 다운로드
+     */
+    public ResponseEntity<Resource> downloadDocument(String docId) throws IOException {
         Document doc = documentRepository.findById(docId)
-				.orElseThrow(() -> new DocumentException("문서를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new DocumentException("문서를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 
         Path path = Paths.get(doc.getPath());
-        byte[] content = Files.readAllBytes(path);
+
+        if (!Files.exists(path)) {
+            throw new DocumentException("파일이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+        }
+
+        Resource resource = new UrlResource(path.toUri());
+        if (!resource.exists() || !resource.isReadable()) {
+            throw new DocumentException("파일을 읽을 수 없습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        // 파일명 인코딩 (한글 파일명 지원)
+        String encodedFilename = URLEncoder.encode(doc.getName(), StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
+
+        String contentType = determineContentType(doc.getName());
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + doc.getName() + "\"")
-                .body(content);
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename*=UTF-8''" + encodedFilename)
+                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(resource.contentLength()))
+                .body(resource);
+    }
+
+    private String determineContentType(String filename) {
+        if (filename == null) {
+            return "application/octet-stream";
+        }
+
+        String extension = filename.toLowerCase();
+
+        if (extension.endsWith(".pdf")) {
+            return "application/pdf";
+        } else if (extension.endsWith(".doc")) {
+            return "application/msword";
+        } else if (extension.endsWith(".docx")) {
+            return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        } else if (extension.endsWith(".xls")) {
+            return "application/vnd.ms-excel";
+        } else if (extension.endsWith(".xlsx")) {
+            return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        } else if (extension.endsWith(".csv")) {
+            return "text/csv; charset=UTF-8";
+        } else if (extension.endsWith(".json")) {
+            return "application/json; charset=UTF-8";
+        } else {
+            return "application/octet-stream";
+        }
     }
 
     // 파일 상세 정보 조회

@@ -3,11 +3,17 @@ package com.skala.decase.domain.document.domain;
 import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.source.domain.Source;
-import jakarta.persistence.*;
-
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.List;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -26,6 +32,7 @@ public class Document {
      * - 요구사항 정의서 : REQ-{숫자}
      * - 조견표 : QFS-{숫자}
      * - 매트릭스 : MATRIX-{숫자}
+     * - As-is : ASIS-{숫자}
      */
     @Id
     @Column(name = "doc_id", nullable = false)
