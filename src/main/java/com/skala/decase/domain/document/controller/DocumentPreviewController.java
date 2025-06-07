@@ -1,9 +1,7 @@
 package com.skala.decase.domain.document.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skala.decase.domain.document.controller.dto.DocumentPreviewDto;
 import com.skala.decase.domain.document.service.DocumentPreviewService;
-import com.skala.decase.domain.document.service.DocumentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.net.URLEncoder;
@@ -18,7 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Docs API", description = "문서 관리를 위한 api 입니다.")
+@Tag(name = "Docs Preview API", description = "문서 미리보기 관리를 위한 api 입니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1")
