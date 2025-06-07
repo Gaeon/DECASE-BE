@@ -240,17 +240,28 @@ public class RequirementService {
             Requirement updatedReq = req.toEntity(project, requirement.getReqIdCode(), revisionCount, member);
             Requirement savedReq = requirementRepository.save(updatedReq);
 
+            // 기존 Source를 새로운 요구사항과 연결
+            List<Source> sources = sourceRepository.findAllByRequirement(requirement);
+            List<Source> newSources = sources.stream()
+                    .map(oldSource -> {
+                        // 기존 Source 정보를 바탕으로 새로운 Source 생성
+                        Source newSource = new Source();
+                        newSource.createSource(
+                                savedReq,  // 새로운 요구사항과 연결
+                                oldSource.getDocument(),  // 기존 문서 정보 유지
+                                oldSource.getPageNum(),   // 기존 페이지 번호 유지
+                                oldSource.getRelSentence()  // 기존 관련 문장 유지
+                        );
+                        return newSource;
+                    })
+                    .toList();
+
+            sourceRepository.saveAll(newSources);
+
             // 기존 요구사항 soft delete
             requirement.setDeleted(true);
             requirement.setDeletedRevision(revisionCount);
             requirementRepository.save(requirement);
-
-            // 기존 Source를 새로운 요구사항과 연결
-            Source rd = sourceRepository.findByRequirement(requirement);
-            if (rd != null) {
-                rd.setRequirement(updatedReq);
-                sourceRepository.save(rd);
-            }
         }
     }
 
