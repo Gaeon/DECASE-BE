@@ -4,8 +4,7 @@ import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.member.exception.MemberException;
 import com.skala.decase.domain.member.repository.MemberRepository;
 import com.skala.decase.domain.project.domain.Project;
-import com.skala.decase.domain.project.exception.ProjectException;
-import com.skala.decase.domain.project.repository.ProjectRepository;
+import com.skala.decase.domain.project.service.ProjectService;
 import com.skala.decase.domain.requirement.controller.dto.RequirementDto;
 import com.skala.decase.domain.requirement.controller.dto.RequirementRevisionDto;
 import com.skala.decase.domain.requirement.controller.dto.UpdateRequirementDto;
@@ -16,7 +15,6 @@ import com.skala.decase.domain.requirement.mapper.RequirementServiceMapper;
 import com.skala.decase.domain.requirement.repository.RequirementRepository;
 import com.skala.decase.domain.source.domain.Source;
 import com.skala.decase.domain.source.service.SourceRepository;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RequirementService {
 
     private final RequirementRepository requirementRepository;
-    private final ProjectRepository projectRepository;
+    private final ProjectService projectService;
     private final SourceRepository sourceRepository;
     private final MemberRepository memberRepository;
 
@@ -46,8 +44,7 @@ public class RequirementService {
     }
 
     public List<RequirementWithSourceResponse> getGeneratedRequirements(Long projectId, int revisionCount) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트 입니다.", HttpStatus.NOT_FOUND));
+        Project project = projectService.findByProjectId(projectId);
 
         //유효한 요구사항 리스트 조회
         List<Requirement> requirements = requirementRepository.findValidRequirementsByProjectAndRevision(
@@ -128,8 +125,8 @@ public class RequirementService {
     }
 
     public Map<String, List<String>> getRequirementCategory(Long projectId) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트 입니다.", HttpStatus.NOT_FOUND));
+
+        Project project = projectService.findByProjectId(projectId);
 
         List<Requirement> requirements = requirementRepository.findByProject_AndIsDeletedFalse(project);
 
@@ -162,8 +159,7 @@ public class RequirementService {
                                                         Integer type, Integer difficulty, Integer priority,
                                                         List<String> docTypes) {
 
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
+        Project project = projectService.findByProjectId(projectId);
 
         List<Requirement> requirements = requirementRepository.findByProject_AndIsDeletedFalse(project);
 
@@ -188,8 +184,7 @@ public class RequirementService {
 
     // 요구사항 버전 별 조회
     public List<RequirementRevisionDto> getRequirementRevisions(Long projectId) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
+        Project project = projectService.findByProjectId(projectId);
 
         Integer maxRevision = requirementRepository.getMaxRevisionCount(project);
 
@@ -211,13 +206,11 @@ public class RequirementService {
     }
 
     /**
-     * 사용자가 직접 화면에서 요구사항 정의서 내용을 수정할때
-     * 리비전 업데이트 x
+     * 사용자가 직접 화면에서 요구사항 정의서 내용을 수정할때 리비전 업데이트 x
      */
     @Transactional
     public Requirement updateRequirement(Long projectId, UpdateRequirementDto req) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
+        Project project = projectService.findByProjectId(projectId);
 
         Member member = memberRepository.findById(req.getMemberId())
                 .orElseThrow(() -> new MemberException("존재하지 않는 회원입니다.", HttpStatus.NOT_FOUND));
@@ -243,13 +236,11 @@ public class RequirementService {
     }
 
     /**
-     * 사용자가 직접 화면에서 요구사항 정의서 내용을 삭제할때
-     * 리비전 업데이트 x
+     * 사용자가 직접 화면에서 요구사항 정의서 내용을 삭제할때 리비전 업데이트 x
      */
     @Transactional
     public String deleteRequirement(Long projectId, Long reqPk) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
+        Project project = projectService.findByProjectId(projectId);
 
         Requirement requirement = requirementRepository.findById(reqPk)
                 .orElseThrow(() -> new RequirementException("해당 요구사항이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
