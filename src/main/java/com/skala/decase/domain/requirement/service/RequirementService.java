@@ -16,6 +16,7 @@ import com.skala.decase.domain.requirement.repository.RequirementRepository;
 import com.skala.decase.domain.source.domain.Source;
 import com.skala.decase.domain.source.service.SourceRepository;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -54,9 +55,20 @@ public class RequirementService {
         if (requirements.isEmpty()) {
             return new ArrayList<>();
         }
+        // reqIdCode + revisionCount 조합별로 createdDate 기준 최신 요구사항만 필터링
+        List<Requirement> latestRequirements = requirements.stream()
+                .collect(Collectors.groupingBy(
+                        req -> req.getReqIdCode() + "_" + req.getRevisionCount(),
+                        Collectors.maxBy(Comparator.comparing(Requirement::getCreatedDate))
+                ))
+                .values()
+                .stream()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
 
         // 유효한 요구사항 PK 목록 추출
-        List<Long> reqPks = requirements.stream()
+        List<Long> reqPks = latestRequirements.stream()
                 .map(Requirement::getReqPk)
                 .toList();
 //		System.out.println("ReqPks: " + reqPks);
@@ -101,7 +113,7 @@ public class RequirementService {
         // 각 요구사항에 해당하는 Source 리스트 설정
         // 주의: JPA에서 조회된 엔티티의 컬렉션을 직접 수정하는 것은 권장되지 않으므로
         // 새로운 리스트를 생성하여 반환하거나 DTO를 사용하는 것이 좋습니다.
-        requirements.forEach(requirement -> {
+        latestRequirements.forEach(requirement -> {
             List<Source> reqSources = sourcesByReqPk.getOrDefault(requirement.getReqIdCode(), new ArrayList<>());
             // 여기서는 기존 sources 리스트를 clear하고 새로 추가
             requirement.getSources().clear();
@@ -114,7 +126,7 @@ public class RequirementService {
 //						", Sources 개수: " + req.getSources().size())
 //		);
 
-        return requirements.stream()
+        return latestRequirements.stream()
                 .map(requirement -> {
                     List<String> modReasons = modReasonsByReqIdCode.getOrDefault(requirement.getReqIdCode(),
                             new ArrayList<>());
