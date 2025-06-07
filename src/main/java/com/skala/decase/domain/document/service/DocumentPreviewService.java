@@ -1,29 +1,17 @@
 package com.skala.decase.domain.document.service;
 
-import com.skala.decase.domain.document.controller.dto.DocumentDetailResponse;
 import com.skala.decase.domain.document.controller.dto.DocumentPreviewDto;
-import com.skala.decase.domain.document.controller.dto.DocumentResponse;
 import com.skala.decase.domain.document.domain.Document;
 import com.skala.decase.domain.document.exception.DocumentException;
 import com.skala.decase.domain.document.repository.DocumentRepository;
-import com.skala.decase.domain.member.domain.Member;
-import com.skala.decase.domain.member.exception.MemberException;
-import com.skala.decase.domain.member.repository.MemberRepository;
-import com.skala.decase.domain.project.domain.Project;
-import com.skala.decase.domain.project.exception.ProjectException;
-import com.skala.decase.domain.project.repository.ProjectRepository;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -40,15 +28,13 @@ import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class DocumentPreviewService {
 
     private final DocumentRepository documentRepository;
@@ -246,7 +232,9 @@ public class DocumentPreviewService {
     }
 
     private String escapeHtml(String text) {
-        if (text == null) return "";
+        if (text == null) {
+            return "";
+        }
         return text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;")
