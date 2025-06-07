@@ -118,7 +118,7 @@ public class RequirementService {
                 .map(requirement -> {
                     List<String> modReasons = modReasonsByReqIdCode.getOrDefault(requirement.getReqIdCode(),
                             new ArrayList<>());
-                    return RequirementServiceMapper.toReqWithSrcResponse(requirement, modReasons);
+                    return RequirementServiceMapper.toReqWithSrcResponse(requirement, modReasons, revisionCount);
                 })
                 .toList();
 
@@ -209,30 +209,37 @@ public class RequirementService {
      * 사용자가 직접 화면에서 요구사항 정의서 내용을 수정할때 리비전 업데이트 x
      */
     @Transactional
-    public Requirement updateRequirement(Long projectId, UpdateRequirementDto req) {
+    public void updateRequirement(Long projectId, int revisionCount, List<UpdateRequirementDto> dtoList) {
         Project project = projectService.findByProjectId(projectId);
 
-        Member member = memberRepository.findById(req.getMemberId())
-                .orElseThrow(() -> new MemberException("존재하지 않는 회원입니다.", HttpStatus.NOT_FOUND));
+        for (UpdateRequirementDto req : dtoList) {
+            Member member = memberRepository.findById(req.getMemberId())
+                    .orElseThrow(() -> new MemberException("존재하지 않는 회원입니다.", HttpStatus.NOT_FOUND));
 
-        Requirement requirement = requirementRepository.findById(req.getReqPk())
-                .orElseThrow(() -> new RequirementException("해당 요구사항이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+            Requirement requirement = requirementRepository.findById(req.getReqPk())
+                    .orElseThrow(() -> new RequirementException("해당 요구사항이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
 
-        // 업데이트 된 요구사항 저장
-        Integer maxRevision = requirementRepository.getMaxRevisionCount(project);
-        Requirement updatedReq = req.toEntity(project, requirement.getReqIdCode(), maxRevision, member);
-        requirementRepository.save(updatedReq);
+            // 프로젝트 소속 확인
+            if (requirement.getProject().getProjectId() != projectId) {
+                throw new IllegalArgumentException("해당 프로젝트의 요구사항이 아닙니다.");
+            }
 
-        // 기존 요구사항 삭제
-        requirement.setDeleted(true);
-        requirement.setDeletedRevision(maxRevision);
+            // 업데이트 된 요구사항 저장
+            Requirement updatedReq = req.toEntity(project, requirement.getReqIdCode(), revisionCount, member);
+            Requirement savedReq = requirementRepository.save(updatedReq);
 
-        // 기존 RequirementDocument를 새로운 요구사항과 연결
-        Source rd = sourceRepository.findByRequirement(requirement);
-        rd.setRequirement(updatedReq);
-        sourceRepository.save(rd);
+            // 기존 요구사항 soft delete
+            requirement.setDeleted(true);
+            requirement.setDeletedRevision(revisionCount);
+            requirementRepository.save(requirement);
 
-        return updatedReq;
+            // 기존 Source를 새로운 요구사항과 연결
+            Source rd = sourceRepository.findByRequirement(requirement);
+            if (rd != null) {
+                rd.setRequirement(updatedReq);
+                sourceRepository.save(rd);
+            }
+        }
     }
 
     /**

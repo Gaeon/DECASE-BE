@@ -57,12 +57,28 @@ public class RequirementServiceMapper {
         return newReq;
     }
 
-    public static RequirementWithSourceResponse toReqWithSrcResponse(Requirement requirement, List<String> modReason) {
+    public static RequirementWithSourceResponse toReqWithSrcResponse(Requirement requirement, List<String> modReason,
+                                                                     int currentRevisionCount) {
         List<SourceResponse> sourceResponses = requirement.getSources().stream()
                 .map(RequirementServiceMapper::toSourceResponse)
                 .collect(Collectors.toList());
 
         DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        // 조회 시점의 revisionCount보다 이후에 삭제된 경우 false로 반환
+        boolean isDeletedAtCurrentRevision;
+        if (requirement.isDeleted()) {
+            // 삭제된 경우
+            if (requirement.getDeletedRevision() == 0) {
+                // deletedRevision이 0인 경우 - 삭제된 적이 없다는 의미이므로 false
+                isDeletedAtCurrentRevision = false;
+            } else {
+                // deletedRevision이 현재 조회 리비전보다 작거나 같으면 삭제된 상태
+                isDeletedAtCurrentRevision = requirement.getDeletedRevision() <= currentRevisionCount;
+            }
+        } else {
+            // 삭제되지 않은 경우
+            isDeletedAtCurrentRevision = false;
+        }
 
         return new RequirementWithSourceResponse(
                 requirement.getReqPk(),
@@ -78,7 +94,7 @@ public class RequirementServiceMapper {
                 requirement.getName(),
                 requirement.getDescription(),
                 requirement.getCreatedDate() != null ? requirement.getCreatedDate().format(DATE_FORMATTER) : null,
-                requirement.isDeleted(),
+                isDeletedAtCurrentRevision,  // 조회 시점의 revisionCount보다 이후에 삭제된 경우 false로 반환
                 requirement.getDeletedRevision(),
                 modReason,
                 sourceResponses

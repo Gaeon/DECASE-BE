@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 public interface RequirementRepository extends JpaRepository<Requirement, Long> {
     /**
-     * 특정 버전의 유효한 요구사항 정의서 목록 불러오기 deletedRevision이 특정 버전 이하인 삭제되지 않은 정보를 불러옵니다.
+     * 특정 버전의 유효한 요구사항 정의서 목록 불러오기 deletedRevision이 특정 버전 이하인 정보를 불러옵니다.
      *
      * @return 특정 버전에서 유효한 요구사항 정의서
      */
