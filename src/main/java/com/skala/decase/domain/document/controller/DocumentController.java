@@ -48,7 +48,7 @@ public class DocumentController {
     // }
 
     @Operation(summary = "문서 다운로드", description = "docId에 해당하는 문서를 다운로드합니다..")
-    @PostMapping("/documents/{docId}/downloads")
+    @GetMapping("/documents/{docId}/downloads")
     public ResponseEntity<Resource> downloadDocument(@PathVariable String docId) throws Exception {
         return documentService.downloadDocument(docId);
     }
