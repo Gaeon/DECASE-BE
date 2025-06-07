@@ -1,209 +1,71 @@
 package com.skala.decase.domain.requirement.service;
 
 import com.skala.decase.domain.document.domain.Document;
-import com.skala.decase.domain.document.exception.DocumentException;
-import com.skala.decase.domain.document.repository.DocumentRepository;
+import com.skala.decase.domain.document.service.DocumentService;
 import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.member.service.MemberService;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.service.ProjectService;
-import com.skala.decase.domain.requirement.domain.Requirement;
-import com.skala.decase.domain.requirement.domain.UpdateStatus;
 import com.skala.decase.domain.requirement.exception.RequirementException;
-import com.skala.decase.domain.requirement.mapper.RequirementServiceMapper;
-import com.skala.decase.domain.requirement.mapper.RequirementUpdateServiceMapper;
-import com.skala.decase.domain.requirement.repository.RequirementRepository;
-import com.skala.decase.domain.requirement.service.dto.response.CreateRfpResponse;
-import com.skala.decase.domain.requirement.service.dto.response.UpdateRfpResponse;
-import com.skala.decase.domain.source.domain.Source;
-import com.skala.decase.domain.source.service.SourceRepository;
-import java.time.LocalDateTime;
-import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class RfpProcessingService {
 
-    private final WebClient webClient;
-    private final RequirementServiceMapper requirementServiceMapper;
-    private final RequirementUpdateServiceMapper requirementUpdateServiceMapper;
-
-    private final RequirementRepository requirementRepository;
-    private final DocumentRepository documentRepository;
-    private final SourceRepository sourceRepository;
-
     private final ProjectService projectService;
     private final MemberService memberService;
+    private final DocumentService documentService;
+
+    private final AsyncRfpProcessor asyncRfpProcessor;
 
     /**
-     * fast-api post "/api/v1/process-rfp-file" 로부터 요구사항 정의서 생성 목록 받아옴
-     *
-     * @param file
-     * @return
-     */
-    private List<CreateRfpResponse> fetchCreateRequirements(MultipartFile file) {
-        // 1. 파일을 FastAPI로 전송하고 결과 받아오기
-//        String boundary = UUID.randomUUID().toString();
-//        Flux<DataBuffer> fileContent = DataBufferUtils.readInputStream(
-//                file::getInputStream,
-//                new DefaultDataBufferFactory(),
-//                4096
-//        );
-
-//        List<CreateRfpResponse> responseList = webClient.post()
-//                .uri("/api/v1/process-rfp-file")
-//                .contentType(MediaType.MULTIPART_FORM_DATA)
-//                .body(BodyInserters.fromMultipartData("file",
-//                        new MultipartBodyBuilder().part("file", file.getResource()).build().toSingleValueMap()
-//                                .get("file")))
-//                .retrieve()
-//                .bodyToFlux(CreateRfpRequest.class)
-//                .collectList()
-//                .block();
-
-        MultipartBodyBuilder builder = new MultipartBodyBuilder();
-        builder.part("file", file.getResource());
-
-        return webClient.post()
-                .uri("/api/v1/process-rfp-file")
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(BodyInserters.fromMultipartData(builder.build()))
-                .retrieve()
-                .bodyToFlux(CreateRfpResponse.class)
-                .collectList()
-                .block();
-
-    }
-
-    /**
-     * RFP 생성
+     * 요구사항 정의서 최초 생성
      *
      * @param projectId
      * @param memberId
-     * @param docId
-     * @param file
+     * @param file      RFP 문서
      */
     @Transactional
-    public void createRFP(Long projectId, Long memberId, String docId, MultipartFile file) {
+    public void createRequirementsSpecification(Long projectId, Long memberId, MultipartFile file) {
         Project project = projectService.findByProjectId(projectId);
         Member member = memberService.findByMemberId(memberId);
-        Document document = documentRepository.findByDocId(docId)
-                .orElseThrow(() -> new DocumentException("문서를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+        Document RFPdoc = documentService.uploadRFP(project, member, file);  //RFP 저장
 
-        // AI가 생성한 요구사항 정의서 받아옴
-        List<CreateRfpResponse> requirements = fetchCreateRequirements(file);
-
-        if (requirements == null) {
-            return;
-        }
-
-        LocalDateTime now = LocalDateTime.now();  //생성 시각
-
-        // fast api로부터 받아온 요구사항 정의서 목록들 저장
-        for (CreateRfpResponse requirement : requirements) {
-            //요구사항 정의서 저장
-            Requirement newReq = requirementServiceMapper.toREQEntity(requirement, member, project, now);
-            requirementRepository.save(newReq);
-
-            //출처 저장
-            Source source = requirementServiceMapper.toSrcEntity(requirement, newReq, document);
-            sourceRepository.save(source);
-        }
+        // Fast api로 요구사항 정의서, asis 보고서 받아와서 DB에 저장
+        // 병렬 처리 시작
+        processInParallel(file, project, member, RFPdoc);
     }
 
     /**
-     * fast-api post "/api/v1/process-rfp-file" 로부터 요구사항 정의서 수정 목록 받아옴
-     *
-     * @param file
-     * @return
+     * 요구사항 정의서 생성, as-is 분석 에이전트 호출
      */
-    private List<UpdateRfpResponse> fetchUpdateRequirements(MultipartFile file) {
-        MultipartBodyBuilder builder = new MultipartBodyBuilder();
-        builder.part("file", file.getResource());
+    private void processInParallel(MultipartFile file, Project project, Member member, Document rfpDoc) {
+        log.info("병렬 처리 시작 - 프로젝트: {}", project.getProjectId());
 
-        return webClient.post()
-                .uri("/api/v1/process-rfp-file")
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(BodyInserters.fromMultipartData(builder.build()))
-                .retrieve()
-                .bodyToFlux(UpdateRfpResponse.class)
-                .collectList()
-                .block();
+        CompletableFuture<Void> requirementsFuture = asyncRfpProcessor.processRequirements(file, project, member,
+                rfpDoc);
+        CompletableFuture<Void> asisFuture = asyncRfpProcessor.processASIS(project, member, file);
 
-    }
+        // 두 작업 완료 대기
+        try {
+            CompletableFuture.allOf(requirementsFuture, asisFuture)
+                    .get(300, TimeUnit.SECONDS);
 
-    /**
-     * RFP 수정
-     *
-     * @param projectId
-     * @param memberId
-     * @param docId
-     * @param file
-     */
-    @Transactional
-    public void updateRFP(Long projectId, Long memberId, String docId, MultipartFile file) {
-        Project project = projectService.findByProjectId(projectId);
-        Member member = memberService.findByMemberId(memberId);
-        Document document = documentRepository.findByDocId(docId)
-                .orElseThrow(() -> new DocumentException("문서를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+            log.info("병렬 처리 완료 - 프로젝트: {}", project.getProjectId());
 
-        //AI가 생성한 추가/업데이트/삭제 요구사항 받아옴
-        //TODO: ai쪽 완성되면 api url 수정 필요
-        List<UpdateRfpResponse> requirements = fetchUpdateRequirements(file);
-
-        if (requirements == null) {
-            return;
-        }
-
-        //수정 이유 (mod reason), modified date 수정, revision 정보 업데이트
-        LocalDateTime modDate = LocalDateTime.now();  //수정 시각
-        int latestRevisionCount = requirementRepository.findMaxRevisionCountByProject(project)
-                .orElseThrow(() -> new RequirementException("수정할 요구사항 정의서가 없습니다.", HttpStatus.NOT_FOUND));
-
-        // fast api로부터 받아온 요구사항 정의서 목록들 반영
-        for (UpdateRfpResponse requirement : requirements) {
-            //추가: 요구사항 단순 추가
-            if (UpdateStatus.fromAI(requirement.status()).equals(UpdateStatus.CREATE)) {
-                Requirement updatedRequirement = requirementUpdateServiceMapper.toCreateREQEntity(requirement, member, project,
-                        modDate, latestRevisionCount + 1);
-                requirementRepository.save(updatedRequirement);
-                Source source=requirementUpdateServiceMapper.toSrcEntity(requirement, updatedRequirement, document);
-                sourceRepository.save(source);
-            }
-
-            //업데이트: 출처가 다른 경우 출처 추가 필요
-            if (UpdateStatus.fromAI(requirement.status()).equals(UpdateStatus.UPDATE)) {
-                // 기존 요구사항 isDeleted=true로 바꾸기
-                Requirement oldRequirement = requirementRepository.findByReqIdCodeAndIsDeletedFalse(requirement.id())
-                        .orElseThrow(() -> new RequirementException("업데이트할 요구사항을 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
-                oldRequirement.softDelete(latestRevisionCount+1);
-
-                // 새로운 업데이트된 요구사항 생성
-                Requirement updatedRequirement = requirementUpdateServiceMapper.toUpdateREQEntity(requirement, member, project,
-                        modDate, latestRevisionCount + 1);
-                requirementRepository.save(updatedRequirement);
-                // 새로운 출처 생성
-                Source source=requirementUpdateServiceMapper.toSrcEntity(requirement, updatedRequirement, document);
-                sourceRepository.save(source);
-            }
-
-            //삭제 : isdelete 필드 업데이트
-            if (UpdateStatus.fromAI(requirement.status()).equals(UpdateStatus.DELETE)) {
-                Requirement updatedRequirement = requirementRepository.findByReqIdCodeAndIsDeletedFalse(requirement.id())
-                        .orElseThrow(() -> new RequirementException("삭제할 요구사항을 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
-                updatedRequirement.softDelete(latestRevisionCount+1);
-            }
-
+        } catch (Exception e) {
+            log.error("병렬 처리 실패", e);
+            throw new RequirementException("RFP 처리 중 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
