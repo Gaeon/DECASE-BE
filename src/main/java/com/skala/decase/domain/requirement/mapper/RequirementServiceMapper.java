@@ -69,8 +69,8 @@ public class RequirementServiceMapper {
         if (requirement.isDeleted()) {
             // 삭제된 경우
             if (requirement.getDeletedRevision() == 0) {
-                // deletedRevision이 0인 경우 - 삭제된 적이 없다는 의미이므로 false
-                isDeletedAtCurrentRevision = false;
+                // deletedRevision이 0인 경우 - 삭제된 상태로 추가된 요구사항
+                isDeletedAtCurrentRevision = true;
             } else {
                 // deletedRevision이 현재 조회 리비전보다 작거나 같으면 삭제된 상태
                 isDeletedAtCurrentRevision = requirement.getDeletedRevision() <= currentRevisionCount;
