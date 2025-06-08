@@ -4,8 +4,7 @@ import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.member.exception.MemberException;
 import com.skala.decase.domain.member.repository.MemberRepository;
 import com.skala.decase.domain.project.domain.Project;
-import com.skala.decase.domain.project.exception.ProjectException;
-import com.skala.decase.domain.project.repository.ProjectRepository;
+import com.skala.decase.domain.project.service.ProjectService;
 import com.skala.decase.domain.requirement.controller.dto.RequirementDto;
 import com.skala.decase.domain.requirement.controller.dto.RequirementRevisionDto;
 import com.skala.decase.domain.requirement.controller.dto.UpdateRequirementDto;
@@ -16,8 +15,8 @@ import com.skala.decase.domain.requirement.mapper.RequirementServiceMapper;
 import com.skala.decase.domain.requirement.repository.RequirementRepository;
 import com.skala.decase.domain.source.domain.Source;
 import com.skala.decase.domain.source.service.SourceRepository;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RequirementService {
 
     private final RequirementRepository requirementRepository;
-    private final ProjectRepository projectRepository;
+    private final ProjectService projectService;
     private final SourceRepository sourceRepository;
     private final MemberRepository memberRepository;
 
@@ -46,8 +45,7 @@ public class RequirementService {
     }
 
     public List<RequirementWithSourceResponse> getGeneratedRequirements(Long projectId, int revisionCount) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트 입니다.", HttpStatus.NOT_FOUND));
+        Project project = projectService.findByProjectId(projectId);
 
         //유효한 요구사항 리스트 조회
         List<Requirement> requirements = requirementRepository.findValidRequirementsByProjectAndRevision(
@@ -57,9 +55,20 @@ public class RequirementService {
         if (requirements.isEmpty()) {
             return new ArrayList<>();
         }
+        // reqIdCode + revisionCount 조합별로 createdDate 기준 최신 요구사항만 필터링
+        List<Requirement> latestRequirements = requirements.stream()
+                .collect(Collectors.groupingBy(
+                        req -> req.getReqIdCode() + "_" + req.getRevisionCount(),
+                        Collectors.maxBy(Comparator.comparing(Requirement::getCreatedDate))
+                ))
+                .values()
+                .stream()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
 
         // 유효한 요구사항 PK 목록 추출
-        List<Long> reqPks = requirements.stream()
+        List<Long> reqPks = latestRequirements.stream()
                 .map(Requirement::getReqPk)
                 .toList();
 //		System.out.println("ReqPks: " + reqPks);
@@ -104,7 +113,7 @@ public class RequirementService {
         // 각 요구사항에 해당하는 Source 리스트 설정
         // 주의: JPA에서 조회된 엔티티의 컬렉션을 직접 수정하는 것은 권장되지 않으므로
         // 새로운 리스트를 생성하여 반환하거나 DTO를 사용하는 것이 좋습니다.
-        requirements.forEach(requirement -> {
+        latestRequirements.forEach(requirement -> {
             List<Source> reqSources = sourcesByReqPk.getOrDefault(requirement.getReqIdCode(), new ArrayList<>());
             // 여기서는 기존 sources 리스트를 clear하고 새로 추가
             requirement.getSources().clear();
@@ -117,19 +126,19 @@ public class RequirementService {
 //						", Sources 개수: " + req.getSources().size())
 //		);
 
-        return requirements.stream()
+        return latestRequirements.stream()
                 .map(requirement -> {
                     List<String> modReasons = modReasonsByReqIdCode.getOrDefault(requirement.getReqIdCode(),
                             new ArrayList<>());
-                    return RequirementServiceMapper.toReqWithSrcResponse(requirement, modReasons);
+                    return RequirementServiceMapper.toReqWithSrcResponse(requirement, modReasons, revisionCount);
                 })
                 .toList();
 
     }
 
     public Map<String, List<String>> getRequirementCategory(Long projectId) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트 입니다.", HttpStatus.NOT_FOUND));
+
+        Project project = projectService.findByProjectId(projectId);
 
         List<Requirement> requirements = requirementRepository.findByProject_AndIsDeletedFalse(project);
 
@@ -162,8 +171,7 @@ public class RequirementService {
                                                         Integer type, Integer difficulty, Integer priority,
                                                         List<String> docTypes) {
 
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
+        Project project = projectService.findByProjectId(projectId);
 
         List<Requirement> requirements = requirementRepository.findByProject_AndIsDeletedFalse(project);
 
@@ -188,8 +196,7 @@ public class RequirementService {
 
     // 요구사항 버전 별 조회
     public List<RequirementRevisionDto> getRequirementRevisions(Long projectId) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
+        Project project = projectService.findByProjectId(projectId);
 
         Integer maxRevision = requirementRepository.getMaxRevisionCount(project);
 
@@ -211,45 +218,59 @@ public class RequirementService {
     }
 
     /**
-     * 사용자가 직접 화면에서 요구사항 정의서 내용을 수정할때
-     * 리비전 업데이트 x
+     * 사용자가 직접 화면에서 요구사항 정의서 내용을 수정할때 리비전 업데이트 x
      */
     @Transactional
-    public Requirement updateRequirement(Long projectId, UpdateRequirementDto req) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
+    public void updateRequirement(Long projectId, int revisionCount, List<UpdateRequirementDto> dtoList) {
+        Project project = projectService.findByProjectId(projectId);
 
-        Member member = memberRepository.findById(req.getMemberId())
-                .orElseThrow(() -> new MemberException("존재하지 않는 회원입니다.", HttpStatus.NOT_FOUND));
+        for (UpdateRequirementDto req : dtoList) {
+            Member member = memberRepository.findById(req.getMemberId())
+                    .orElseThrow(() -> new MemberException("존재하지 않는 회원입니다.", HttpStatus.NOT_FOUND));
 
-        Requirement requirement = requirementRepository.findById(req.getReqPk())
-                .orElseThrow(() -> new RequirementException("해당 요구사항이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+            Requirement requirement = requirementRepository.findById(req.getReqPk())
+                    .orElseThrow(() -> new RequirementException("해당 요구사항이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
 
-        // 업데이트 된 요구사항 저장
-        Integer maxRevision = requirementRepository.getMaxRevisionCount(project);
-        Requirement updatedReq = req.toEntity(project, requirement.getReqIdCode(), maxRevision, member);
-        requirementRepository.save(updatedReq);
+            // 프로젝트 소속 확인
+            if (requirement.getProject().getProjectId() != projectId) {
+                throw new IllegalArgumentException("해당 프로젝트의 요구사항이 아닙니다.");
+            }
 
-        // 기존 요구사항 삭제
-        requirement.setDeleted(true);
-        requirement.setDeletedRevision(maxRevision);
+            // 업데이트 된 요구사항 저장
+            Requirement updatedReq = req.toEntity(project, requirement.getReqIdCode(), revisionCount, member);
+            Requirement savedReq = requirementRepository.save(updatedReq);
 
-        // 기존 RequirementDocument를 새로운 요구사항과 연결
-        Source rd = sourceRepository.findByRequirement(requirement);
-        rd.setRequirement(updatedReq);
-        sourceRepository.save(rd);
+            // 기존 Source를 새로운 요구사항과 연결
+            List<Source> sources = sourceRepository.findAllByRequirement(requirement);
+            List<Source> newSources = sources.stream()
+                    .map(oldSource -> {
+                        // 기존 Source 정보를 바탕으로 새로운 Source 생성
+                        Source newSource = new Source();
+                        newSource.createSource(
+                                savedReq,  // 새로운 요구사항과 연결
+                                oldSource.getDocument(),  // 기존 문서 정보 유지
+                                oldSource.getPageNum(),   // 기존 페이지 번호 유지
+                                oldSource.getRelSentence()  // 기존 관련 문장 유지
+                        );
+                        return newSource;
+                    })
+                    .toList();
 
-        return updatedReq;
+            sourceRepository.saveAll(newSources);
+
+            // 기존 요구사항 soft delete
+            requirement.setDeleted(true);
+            requirement.setDeletedRevision(revisionCount);
+            requirementRepository.save(requirement);
+        }
     }
 
     /**
-     * 사용자가 직접 화면에서 요구사항 정의서 내용을 삭제할때
-     * 리비전 업데이트 x
+     * 사용자가 직접 화면에서 요구사항 정의서 내용을 삭제할때 리비전 업데이트 x
      */
     @Transactional
     public String deleteRequirement(Long projectId, Long reqPk) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
+        Project project = projectService.findByProjectId(projectId);
 
         Requirement requirement = requirementRepository.findById(reqPk)
                 .orElseThrow(() -> new RequirementException("해당 요구사항이 존재하지 않습니다.", HttpStatus.NOT_FOUND));

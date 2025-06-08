@@ -22,6 +22,7 @@ public class UpdateRequirementDto {
 	private Difficulty difficulty;
 	private String name;
 	private String description;
+	private boolean isDeleted;
 	private String modReason;
 
 	public Requirement toEntity(Project project, String reqIdCode, int revisionCount, Member member) {
@@ -39,7 +40,7 @@ public class UpdateRequirementDto {
 		requirement.setDescription(this.getDescription());
 		requirement.setPriority(this.getPriority());
 		requirement.setDifficulty(this.getDifficulty());
-		requirement.setDeleted(false);
+		requirement.setDeleted(isDeleted);
 		requirement.setCreatedDate(LocalDateTime.now());
 		requirement.setDeletedRevision(0);
 		return requirement;

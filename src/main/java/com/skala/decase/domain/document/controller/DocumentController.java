@@ -5,16 +5,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skala.decase.domain.document.controller.dto.DocumentDetailResponse;
 import com.skala.decase.domain.document.controller.dto.DocumentResponse;
 import com.skala.decase.domain.document.service.DocumentService;
-
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
 
 @Tag(name = "Docs API", description = "문서 관리를 위한 api 입니다.")
 @RestController
@@ -32,7 +36,8 @@ public class DocumentController {
             @RequestPart("files") List<MultipartFile> files,
             @RequestPart("types") String typesJson
     ) throws Exception {
-        List<Integer> types = objectMapper.readValue(typesJson, new TypeReference<>() {});
+        List<Integer> types = objectMapper.readValue(typesJson, new TypeReference<>() {
+        });
         return ResponseEntity.ok(documentService.uploadDocuments(projectId, memberId, files, types));
     }
 
@@ -42,24 +47,20 @@ public class DocumentController {
     //     return ResponseEntity.noContent().build();
     // }
 
-    @PostMapping("/documents/{docId}/downloads")
-    public ResponseEntity<byte[]> downloadDocument(@PathVariable String docId) throws Exception {
+    @Operation(summary = "문서 다운로드", description = "docId에 해당하는 문서를 다운로드합니다..")
+    @GetMapping("/documents/{docId}/downloads")
+    public ResponseEntity<Resource> downloadDocument(@PathVariable String docId) throws Exception {
         return documentService.downloadDocument(docId);
     }
 
     @GetMapping("/documents/{docId}")
-    public ResponseEntity<DocumentDetailResponse> getDocumentDetail(@PathVariable String docId) throws Exception {
+    public ResponseEntity<DocumentDetailResponse> getDocumentDetail(@PathVariable String docId) {
         return documentService.getDocumentDetails(docId);
     }
 
     // 요구사항 리비전에 따른 문서 목록
     @GetMapping("/projects/{projectId}/document/uploads")
-    public ResponseEntity<List<DocumentResponse>> getDocumentUploads(@PathVariable Long projectId) throws Exception {
+    public ResponseEntity<List<DocumentResponse>> getDocumentUploads(@PathVariable Long projectId) {
         return documentService.getDocumentUploads(projectId);
-    }
-
-    @GetMapping("/documents/{docId}/preview")
-    public ResponseEntity<Resource> previewDocument(@PathVariable String docId) throws IOException {
-        return documentService.previewDocument(docId);
     }
 }
