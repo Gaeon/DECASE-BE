@@ -8,7 +8,9 @@ public record ProjectDetailResponseDto (
 	Long projectId,
 	String name,
 	Long scale,
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	Date startDate,
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	Date endDate,
 	String description,
 	String proposalPM

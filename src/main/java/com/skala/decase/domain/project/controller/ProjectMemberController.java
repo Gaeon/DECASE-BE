@@ -2,6 +2,8 @@ package com.skala.decase.domain.project.controller;
 
 import com.skala.decase.domain.project.controller.dto.request.ChangeStatusRequest;
 import com.skala.decase.domain.project.controller.dto.request.CreateMemberProjectRequest;
+import com.skala.decase.domain.project.controller.dto.request.DeleteMemberInvitationRequest;
+import com.skala.decase.domain.project.controller.dto.request.DeleteMemberRequest;
 import com.skala.decase.domain.project.controller.dto.response.*;
 import com.skala.decase.domain.project.service.ProjectInvitationService;
 import com.skala.decase.global.model.ApiResponse;
@@ -72,9 +74,9 @@ public class ProjectMemberController {
     }
 
     @Operation(summary = "프로젝트 멤버 삭제", description = "프로젝트 멤버 삭제를 위한 API입니다.")
-    @DeleteMapping("/{projectId}/members/{memberId}")
-    public ResponseEntity<ApiResponse<DeleteMemberResponse>> deleteMember(@PathVariable("projectId") long projectId, @PathVariable("memberId") String memberId) {
-        DeleteMemberResponse response = projectInvitationService.deleteMember(projectId, memberId);
+    @DeleteMapping("/{projectId}/members")
+    public ResponseEntity<ApiResponse<DeleteMemberResponse>> deleteMember(@PathVariable("projectId") long projectId, @RequestBody DeleteMemberRequest request) {
+        DeleteMemberResponse response = projectInvitationService.deleteMember(projectId, request);
         return ResponseEntity.ok()
                 .body(ApiResponse.success(response));
     }
@@ -85,5 +87,21 @@ public class ProjectMemberController {
         List<MemberInvitationResponse> responses = projectInvitationService.findMemberInvitationByProject(projectId);
         return ResponseEntity.ok()
                 .body(ApiResponse.success(responses));
+    }
+
+    @Operation(summary = "프로젝트 초대 삭제", description = "프로젝트 초대를 삭제하는 API입니다.")
+    @DeleteMapping("/{projectId}/members/invitation/cancel")
+    public ResponseEntity<ApiResponse<DeleteMemberResponse>> deleteInvitation(@PathVariable("projectId") long projectId, @RequestBody DeleteMemberInvitationRequest request) {
+        DeleteMemberResponse response = projectInvitationService.deleteMemberInvitation(projectId, request);
+        return ResponseEntity.ok()
+                .body(ApiResponse.success(response));
+    }
+
+    @Operation(summary = "프로젝트 초대 정보 조회", description = "프로젝트 초대 정보 조회를 위한 API입니다.")
+    @GetMapping("/members/invitation/{token}")
+    public ResponseEntity<ApiResponse<InvitationInfoResponse>> findMemberProjectByToken(@PathVariable("token") String token) {
+        InvitationInfoResponse response = projectInvitationService.findMemberProjectByToken(token);
+        return ResponseEntity.ok()
+                .body(ApiResponse.success(response));
     }
 }

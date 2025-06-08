@@ -5,6 +5,7 @@ import com.skala.decase.domain.project.domain.ProjectInvitation;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ProjectInvitationRepository extends JpaRepository<ProjectInvitation, Long> {
     ProjectInvitation findByToken(String token);
@@ -13,4 +14,5 @@ public interface ProjectInvitationRepository extends JpaRepository<ProjectInvita
 
     List<ProjectInvitation> findAllByProject(Project project);
 
+    Optional<ProjectInvitation> findFirstByProjectAndEmailOrderByExpiryDateDesc(Project project, String email);
 }

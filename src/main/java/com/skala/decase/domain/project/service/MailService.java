@@ -19,7 +19,7 @@ public class MailService {
     private final JavaMailSender javaMailSender;
     private final static String MAIL_SUBJECT_CONTENT = "Decase 프로젝트 초대 메일입니다.";
     private final static String MAIL_WELCOME_CONTENT = "Decase와 함께 하시는 것을 진심으로 환영합니다.";
-    private final static String WEB_URL = "http://localhost:8080.com/invitations/";
+    private final static String WEB_URL = "http://localhost:5173/invite";
 
     /*
         메일 전송
