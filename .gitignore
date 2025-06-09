@@ -41,6 +41,7 @@ out/
 
 ### Media Dir ###
 DECASE/upload
+DECASE/mockups
 
 ### DS_Store
 .DS_Store
