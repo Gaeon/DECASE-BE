@@ -23,7 +23,7 @@ import java.util.List;
 @Validated
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/projects")
-public class ProjectMemberController {
+public class ProjectInvitationController {
 
     private final ProjectInvitationService projectInvitationService;
 

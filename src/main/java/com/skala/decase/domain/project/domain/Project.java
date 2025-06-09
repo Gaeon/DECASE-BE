@@ -47,7 +47,7 @@ public class Project {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private ProjectStatus status = ProjectStatus.NOT_STARTED;
+    private ProjectStatus status;
 
     @Column(nullable = false)
     private LocalDateTime createdDate;
@@ -80,17 +80,5 @@ public class Project {
         this.membersProjects = new ArrayList<>();
         this.documents = new ArrayList<>();
         this.requirements = new ArrayList<>();
-    }
-
-    // 프로젝트 상태 업데이트
-    public void updateStatusByDate() {
-        Date today = new Date();
-        if (today.before(startDate)) {
-            this.status = ProjectStatus.NOT_STARTED;
-        } else if (today.after(endDate)) {
-            this.status = ProjectStatus.DONE;
-        } else {
-            this.status = ProjectStatus.IN_PROGRESS;
-        }
     }
 }
