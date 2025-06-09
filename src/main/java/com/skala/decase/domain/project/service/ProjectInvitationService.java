@@ -92,13 +92,22 @@ public class ProjectInvitationService {
             return successMapper.isJoinSuccess(false, projectInvitation); //false일 경우 회원 가입
         }
 
-        MemberProject memberProject = MemberProject.builder()
+        MemberProject memberProject = memberProjectRepository.findByProjectIdAndMemberId(
+                projectInvitation.getProject().getProjectId(),
+                newMember.getMemberId()
+        );
+
+        if (memberProject != null) {
+            throw new ProjectException("이미 참여 중인 멤버입니다.", HttpStatus.BAD_REQUEST);
+        }
+
+        MemberProject newMemberProject = MemberProject.builder()
                 .permission(projectInvitation.getPermission())
                 .isAdmin(false)
                 .member(newMember)
                 .project(projectInvitation.getProject())
                 .build();
-        memberProjectRepository.save(memberProject);
+        memberProjectRepository.save(newMemberProject);
 
         projectInvitation.setAcceptedTrue();
         projectInvitationRepository.save(projectInvitation);

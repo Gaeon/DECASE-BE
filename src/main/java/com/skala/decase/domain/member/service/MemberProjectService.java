@@ -1,17 +1,14 @@
 package com.skala.decase.domain.member.service;
 
-import com.skala.decase.domain.member.controller.dto.request.UpdateStatusRequest;
 import com.skala.decase.domain.member.controller.dto.response.MemberProjectListResponse;
 import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.member.repository.MemberProjectRepository;
-import com.skala.decase.domain.project.controller.dto.response.ProjectResponse;
 import com.skala.decase.domain.project.domain.MemberProject;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.domain.ProjectStatus;
 import com.skala.decase.domain.project.exception.ProjectException;
 import com.skala.decase.domain.project.mapper.MemberProjectMapper;
-import com.skala.decase.domain.project.mapper.ProjectMapper;
-import com.skala.decase.domain.project.service.ProjectService;
+
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,9 +25,7 @@ public class MemberProjectService {
 
     private final MemberProjectRepository memberProjectRepository;
     private final MemberService memberService;
-    private final ProjectService projectService;
     private final MemberProjectMapper memberProjectMapper;
-    private final ProjectMapper projectMapper;
 
 
     /**
