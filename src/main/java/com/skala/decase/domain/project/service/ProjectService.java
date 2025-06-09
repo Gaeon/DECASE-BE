@@ -19,6 +19,7 @@ import com.skala.decase.domain.project.repository.ProjectRepository;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.skala.decase.domain.requirement.domain.Requirement;
@@ -132,50 +133,20 @@ public class ProjectService {
     // 단일 프로젝트 상세 설명
     public ProjectDetailResponseDto getProject(Long projectId) {
         Project project = findByProjectId(projectId);
-
-        return new ProjectDetailResponseDto(
-                project.getProjectId(),
-                project.getName(),
-                project.getScale(),
-                project.getStartDate(),
-                project.getEndDate(),
-                project.getDescription(),
-                project.getProposalPM()
-        );
-    }
-
-    private String getDocName(Requirement requirement) {
-        Document document = requirementDocumentRepository.findByRequirement(requirement).getDocument();
-        return document.getName();
-    }
-
-    private int getPageNum(Requirement requirement) {
-        RequirementDocument requirementDocument = requirementDocumentRepository.findByRequirement(requirement);
-        return requirementDocument.getPageNum();
-    }
-
-    private String getRelSentence(Requirement requirement) {
-        RequirementDocument requirementDocument = requirementDocumentRepository.findByRequirement(requirement);
-        return requirementDocument.getRelSentence();
+        return projectMapper.toDetailResponse(project);
     }
 
     // 조견표 리스트 생성
     private List<MappingTableResponseDto> createMappingTable(Long projectId) {
-        Project project = findByProjectId(projectId);
-        List<MappingTableResponseDto> responseList = project.getRequirements().stream()
-                .filter(req -> !req.isDeleted())
-                .map(req -> new MappingTableResponseDto(
-                        req.getReqIdCode(),
-                        req.getName(),
-                        req.getDescription(),
-                        getDocName(req),
-                        getPageNum(req),
-                        getRelSentence(req)
-                ))
+        return findByProjectId(projectId).getRequirements().stream()
+                .filter(requirement -> !requirement.isDeleted())
+                .map(requirement -> {
+                    RequirementDocument doc = requirementDocumentRepository.findByRequirement(requirement);
+                    return projectMapper.toMappingTable(requirement, doc);
+                })
                 .toList();
-
-        return responseList;
     }
+
 
     // 조견표 출력
     public byte[] exportMappingTableToExcel(Long projectId) throws IOException {

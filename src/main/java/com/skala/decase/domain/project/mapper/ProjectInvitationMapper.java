@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class ProjectMemberMapper {
+public class ProjectInvitationMapper {
 
     public MemberProjectResponse toResponse(MemberProject memberProject) {
         return new MemberProjectResponse(

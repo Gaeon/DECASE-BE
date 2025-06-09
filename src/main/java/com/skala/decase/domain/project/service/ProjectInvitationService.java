@@ -12,7 +12,7 @@ import com.skala.decase.domain.project.domain.MemberProject;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.domain.ProjectInvitation;
 import com.skala.decase.domain.project.exception.ProjectException;
-import com.skala.decase.domain.project.mapper.ProjectMemberMapper;
+import com.skala.decase.domain.project.mapper.ProjectInvitationMapper;
 import com.skala.decase.domain.project.mapper.SuccessMapper;
 import com.skala.decase.domain.project.repository.ProjectInvitationRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ import java.util.List;
 public class ProjectInvitationService {
 
     private final SuccessMapper successMapper;
-    private final ProjectMemberMapper projectMemberMapper;
+    private final ProjectInvitationMapper projectMemberMapper;
     private final ProjectInvitationRepository projectInvitationRepository;
     private final MemberProjectRepository memberProjectRepository;
     private final ProjectService projectService;

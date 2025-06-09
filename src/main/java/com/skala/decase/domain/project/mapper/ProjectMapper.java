@@ -1,11 +1,18 @@
 package com.skala.decase.domain.project.mapper;
 
+import com.skala.decase.domain.document.domain.Document;
 import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.project.controller.dto.request.CreateProjectRequest;
+import com.skala.decase.domain.project.controller.dto.response.MappingTableResponseDto;
+import com.skala.decase.domain.project.controller.dto.response.ProjectDetailResponseDto;
 import com.skala.decase.domain.project.controller.dto.response.ProjectResponse;
 import com.skala.decase.domain.project.domain.Project;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
+import com.skala.decase.domain.requirement.controller.dto.RequirementDto;
+import com.skala.decase.domain.requirement.domain.Requirement;
+import com.skala.decase.domain.requirement.domain.RequirementDocument;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -46,4 +53,26 @@ public class ProjectMapper {
         );
     }
 
+    public ProjectDetailResponseDto toDetailResponse(Project project) {
+        return new ProjectDetailResponseDto(
+                project.getProjectId(),
+                project.getName(),
+                project.getScale(),
+                project.getStartDate(),
+                project.getEndDate(),
+                project.getDescription(),
+                project.getProposalPM()
+        );
+    }
+
+    public MappingTableResponseDto toMappingTable(Requirement requirement, RequirementDocument requirementDocument) {
+        return new MappingTableResponseDto(
+                requirement.getReqIdCode(),
+                requirement.getName(),
+                requirement.getDescription(),
+                requirementDocument.getDocument().getName(),
+                requirementDocument.getPageNum(),
+                requirementDocument.getRelSentence()
+        );
+    }
 }
