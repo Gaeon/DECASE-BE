@@ -19,7 +19,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -101,23 +103,23 @@ public class AsyncRfpProcessor {
 
             log.info("ASIS 처리 시작 - 프로젝트: {}", project.getProjectId());
 
-//            MultipartBodyBuilder builder = new MultipartBodyBuilder();
-//            builder.part("file", rfpFile.getResource());
-//
-//            ResponseEntity<byte[]> response = webClient.post()
-//                    .uri("/api/v1/asis")
-//                    .contentType(MediaType.MULTIPART_FORM_DATA)
-//                    .body(BodyInserters.fromMultipartData(builder.build()))
-//                    .retrieve()
-//                    .toEntity(byte[].class)
-//                    .timeout(Duration.ofMinutes(3))
-//                    .block();
-//
-//            if (response.getBody() != null) {
-//                String fileName = extractFileName(response.getHeaders());
-//                documentService.uploadDocumentFromBytes(response.getBody(), fileName, 8, project, member);
-//                log.info("ASIS 문서 저장 완료");
-//            }
+            MultipartBodyBuilder builder = new MultipartBodyBuilder();
+            builder.part("file", rfpFile.getResource());
+
+            ResponseEntity<byte[]> response = webClient.post()
+                    .uri("/api/v1/requirements/as-is")
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(BodyInserters.fromMultipartData(builder.build()))
+                    .retrieve()
+                    .toEntity(byte[].class)
+                    .timeout(Duration.ofMinutes(3))
+                    .block();
+
+            if (response.getBody() != null) {
+                String fileName = extractFileName(response.getHeaders());
+                documentService.uploadDocumentFromBytes(response.getBody(), fileName, 8, project, member);
+                log.info("ASIS 문서 저장 완료");
+            }
 
             return CompletableFuture.completedFuture(null);
 
@@ -142,6 +144,15 @@ public class AsyncRfpProcessor {
             Source source = requirementServiceMapper.toSrcEntity(requirement, newReq, document);
             sourceRepository.save(source);
         }
+    }
+
+    private String extractFileName(HttpHeaders headers)
+    {
+        String contentDisposition = headers.getFirst("Content-Disposition");
+        if (contentDisposition != null && contentDisposition.contains("filename=")) {
+            return contentDisposition.split("filename=")[1].replaceAll("\"", "");
+        }
+        return "asis_report_" + System.currentTimeMillis() + ".pdf";
     }
 
 }
