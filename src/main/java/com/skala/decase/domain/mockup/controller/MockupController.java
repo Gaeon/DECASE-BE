@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "Mockup API", description = "목업 관리를 위한 api 입니다.")
 @RestController
@@ -22,11 +23,10 @@ public class MockupController {
 
 	// 요구사항 리비전에 따른 목업 불러오기
 	@Operation(summary = "목업 보기", description = "생성된 목업 뷰어를 지원합니다.")
-	@GetMapping("/{revisionCount}")
-	public List<Resource> getMockups(
-			@PathVariable Long projectId,
-			@PathVariable Integer revisionCount) {
-		return mockupService.getMockups(projectId, revisionCount);
+	@GetMapping("/")
+	public ResponseEntity<Map<Integer, List<String>>> getMockups(
+			@PathVariable Long projectId) {
+		return ResponseEntity.ok(mockupService.getMockupsGroupedByRevision(projectId));
 	}
 
 	@Operation(summary = "목업 다운로드", description = "생성된 목업 코드의 다운로드를 지원합니다. (.zip)")
@@ -34,6 +34,6 @@ public class MockupController {
 	public ResponseEntity<Resource> downloadMockups(
 			@PathVariable Long projectId,
 			@PathVariable Integer revisionCount) {
-		return mockupService.downloadMockups(projectId, revisionCount)
+		return mockupService.downloadMockups(projectId, revisionCount);
 	}
 }
