@@ -15,8 +15,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class Mockup {
 	@Id
-	@Column(name = "moc_id", length = 15, nullable = false)
-	private String mocId;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "moc_id", length = 255, nullable = false)
+	private Long mocId;
+
+	@Column(name = "name", length = 100, nullable = false)
+	private String name;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "project_id", nullable = false)
@@ -30,4 +34,13 @@ public class Mockup {
 
 	@Column(name = "created_date", nullable = false)
 	private LocalDateTime createdDate;
+
+	@Builder
+	public Mockup(String name, Project project, Integer revisionCount, String path) {
+		this.name = name;
+		this.project = project;
+		this.revisionCount = revisionCount;
+		this.path = path;
+		this.createdDate = LocalDateTime.now();
+	}
 }

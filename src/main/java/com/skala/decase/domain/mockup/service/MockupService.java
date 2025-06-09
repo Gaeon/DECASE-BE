@@ -3,6 +3,13 @@ package com.skala.decase.domain.mockup.service;
 import com.skala.decase.domain.mockup.domain.Mockup;
 import com.skala.decase.domain.mockup.exception.MockupException;
 import com.skala.decase.domain.mockup.repository.MockupRepository;
+import com.skala.decase.domain.project.domain.Project;
+import com.skala.decase.domain.project.repository.ProjectRepository;
+import com.skala.decase.domain.mockup.domain.dto.MockupUploadResponse;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -15,13 +22,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -29,7 +34,11 @@ import java.util.zip.ZipOutputStream;
 @RequiredArgsConstructor
 public class MockupService {
 
-	private final MockupRepository mockupRepository;
+    // 로컬 파일 업로드 경로
+    private static final String BASE_UPLOAD_PATH = "DECASE/mockups";
+
+    private final MockupRepository mockupRepository;
+    private final ProjectRepository projectRepository;
 
 	// 프로젝트 ID 기준 모든 목업 리비전별로 그룹화된 정보 반환
 	public Map<Integer, List<String>> getMockupsGroupedByRevision(Long projectId) {
@@ -47,6 +56,28 @@ public class MockupService {
 
 		return revisionMap;
 	}
+
+	// 단일 목업 코드 반환 (HTML 등)
+	public ResponseEntity<Resource> getMockupCode(Long projectId, Integer revisionCount, String fileName) {
+		Optional<Mockup> mockupOpt = mockupRepository.findByProject_ProjectIdAndRevisionCountAndName(projectId, revisionCount, fileName);
+
+		if (mockupOpt.isEmpty()) {
+			return ResponseEntity.notFound().build();
+		}
+
+		Mockup mockup = mockupOpt.get();
+		try {
+			String code = Files.readString(Path.of(mockup.getPath()));
+			ByteArrayResource resource = new ByteArrayResource(code.getBytes(StandardCharsets.UTF_8));
+
+			return ResponseEntity.ok()
+					.contentType(MediaType.TEXT_HTML)
+					.body(resource);
+		} catch (IOException e) {
+			return ResponseEntity.internalServerError().build();
+		}
+	}
+
 
 	// 목업 불러오기
 	private List<Resource> getMockupsByRevision(Long projectId, Integer revisionCount) {
@@ -81,7 +112,7 @@ public class MockupService {
 			 ZipOutputStream zipOut = new ZipOutputStream(byteStream)) {
 
 			for (Resource resource : mockupResources) {
-				String fileName = Paths.get(resource.getFilename()).getFileName().toString();
+				String fileName = resource.getFilename();
 				zipOut.putNextEntry(new ZipEntry(fileName));
 				try (InputStream inputStream = resource.getInputStream()) {
 					byte[] buffer = new byte[1024];
@@ -94,12 +125,44 @@ public class MockupService {
 			}
 
 			zipOut.finish();
+			byte[] zipBytes = byteStream.toByteArray();
+			ByteArrayResource resource = new ByteArrayResource(zipBytes);
 			return ResponseEntity.ok()
-					.header("Content-Disposition", "attachment; filename=\"mockups.zip\"")
-					.body(new ByteArrayResource(byteStream.toByteArray()));
+					.contentLength(zipBytes.length)
+					.contentType(MediaType.APPLICATION_OCTET_STREAM)
+					.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"mockups.zip\"")
+					.body(resource);
 
 		} catch (IOException e) {
 			throw new MockupException("ZIP 파일 생성 중 오류 발생: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
+    // 테스트용 - 목업 파일 업로드 메서드
+    public List<MockupUploadResponse> uploadMockups(Long projectId, Integer revisionCount, List<MultipartFile> files) throws java.io.IOException {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new MockupException("프로젝트를 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+
+        List<MockupUploadResponse> responses = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+
+            String filename = file.getOriginalFilename();
+            java.nio.file.Path savePath = java.nio.file.Paths.get(BASE_UPLOAD_PATH, filename);
+            java.nio.file.Files.copy(file.getInputStream(), savePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            Mockup mockup = Mockup
+					.builder()
+					.name(filename)
+                    .project(project)
+                    .revisionCount(revisionCount)
+                    .path(savePath.toString())
+                    .build();
+            mockupRepository.save(mockup);
+
+            responses.add(new MockupUploadResponse(file.getOriginalFilename(), savePath.toString()));
+        }
+
+        return responses;
+    }
 }
