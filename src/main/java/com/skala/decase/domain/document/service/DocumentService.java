@@ -129,6 +129,7 @@ public class DocumentService {
     }
 
     // 사용자 업로드
+    @Transactional
     public List<DocumentResponse> uploadDocuments(Long projectId, Long memberId, List<MultipartFile> files,
                                                   List<Integer> types) {
         if (files.size() != types.size()) {

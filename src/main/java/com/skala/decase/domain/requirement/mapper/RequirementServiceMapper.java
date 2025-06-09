@@ -1,6 +1,5 @@
 package com.skala.decase.domain.requirement.mapper;
 
-
 import com.skala.decase.domain.document.domain.Document;
 import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.project.domain.Project;
@@ -27,14 +26,18 @@ public class RequirementServiceMapper {
 
         Requirement newReq = new Requirement();
 
+        String description="[요구사항]\n"+response.description_content()+"\n"
+                +"[대상업무]\n"+response.target_task()+"\n"
+                +"[요건 처리 상세]\n"+response.processing_detail();
+
         newReq.createInitialRequirement(
-                response.id(),
+                "REQ-0001",
                 RequirementType.fromKorean(response.type()),
                 response.category_large(),
                 response.category_medium(),
                 response.category_small(),
-                response.description(),
-                response.detailed_description(),
+                response.description_name(),
+                description,
                 Priority.fromKorean(response.importance()),
                 Difficulty.fromKorean(response.difficulty()),
                 now,
@@ -51,8 +54,8 @@ public class RequirementServiceMapper {
         newReq.createSource(
                 requirement,
                 document,
-                Integer.parseInt(response.source_pages()),  //int로 변환할까
-                response.acceptance_criteria()
+                Integer.parseInt(response.rfp_page()),  //int로 변환할까
+                response.raw_text()
         );
         return newReq;
     }
@@ -109,5 +112,4 @@ public class RequirementServiceMapper {
                 source.getRelSentence()
         );
     }
-
 }
