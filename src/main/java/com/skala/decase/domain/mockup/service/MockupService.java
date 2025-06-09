@@ -101,6 +101,18 @@ public class MockupService {
 		return resources;
 	}
 
+	// 수정된 목업 코드 저장
+	public void saveMockupCode(Long projectId, Integer revisionCount, String fileName, String newCode) {
+		Mockup mockup = mockupRepository.findByProject_ProjectIdAndRevisionCountAndName(projectId, revisionCount, fileName)
+				.orElseThrow(() -> new MockupException("파일을 찾을 수 없습니다", HttpStatus.NOT_FOUND));
+
+		try {
+			Files.writeString(Path.of(mockup.getPath()), newCode, StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			throw new MockupException("파일 저장 중 오류", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 	// 목업 다운로드
 	public ResponseEntity<Resource> downloadMockups(Long projectId, Integer revisionCount) {
 		List<Resource> mockupResources = getMockupsByRevision(projectId, revisionCount);

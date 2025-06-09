@@ -38,8 +38,20 @@ public class MockupController {
 		return mockupService.getMockupCode(projectId, revisionCount, fileName);
 	}
 
+	@Operation(summary = "목업 코드 수정 저장", description = "수정됨 목업 코드 저장")
+	@PutMapping("/{revisionCount}/{fileName}")
+	public ResponseEntity<Void> saveMockupCode(
+			@PathVariable Long projectId,
+			@PathVariable Integer revisionCount,
+			@PathVariable String fileName,
+			@RequestBody Map<String, String> requestBody) {
+		String code = requestBody.get("code");
+		mockupService.saveMockupCode(projectId, revisionCount, fileName, code);
+		return ResponseEntity.ok().build();
+	}
+
 	@Operation(summary = "목업 다운로드", description = "생성된 목업 코드의 다운로드를 지원 (.zip)")
-	@PostMapping("/{revisionCount}/download")
+	@GetMapping("/{revisionCount}/download")
 	public ResponseEntity<Resource> downloadMockups(
 			@PathVariable Long projectId,
 			@PathVariable Integer revisionCount) {
