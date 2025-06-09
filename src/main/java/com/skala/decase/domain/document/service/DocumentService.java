@@ -36,6 +36,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,8 +47,6 @@ public class DocumentService {
 
     private final DocumentRepository documentRepository;
     private final ProjectRepository projectRepository;
-    private final ProjectService projectService;
-    private final MemberService memberService;
     private final MemberRepository memberRepository;
 
     // 로컬 파일 업로드 경로
@@ -64,6 +63,15 @@ public class DocumentService {
             7, "MATRIX",
             8, "ASIS"
     );
+
+    /**
+     * id로 Document 객체 찾기
+     */
+    public Document findByDocId(String documentId) {
+        return documentRepository.findById(documentId)
+                .orElseThrow(() -> new DocumentException("Document not found: " + documentId, HttpStatus.NOT_FOUND));
+
+    }
 
     /**
      * 파일 저장 로직
@@ -121,6 +129,7 @@ public class DocumentService {
     }
 
     // 사용자 업로드
+    @Transactional
     public List<DocumentResponse> uploadDocuments(Long projectId, Long memberId, List<MultipartFile> files,
                                                   List<Integer> types) {
         if (files.size() != types.size()) {
@@ -153,6 +162,7 @@ public class DocumentService {
     /**
      * RFP 단건 파일 업로드 -> 최초 요구사항 정의서 생성시 사용
      **/
+    @Transactional
     public Document uploadRFP(Project project, Member member, MultipartFile RFPfile) {
         return uploadDocument(RFPfile, 1, project, member);
     }
