@@ -198,7 +198,7 @@ public class RequirementService {
     public List<RequirementRevisionDto> getRequirementRevisions(Long projectId) {
         Project project = projectService.findByProjectId(projectId);
 
-        Integer maxRevision = requirementRepository.getMaxRevisionCount(project);
+        int maxRevision = Optional.ofNullable(requirementRepository.getMaxRevisionCount(project)).orElse(0);
 
         String prefix = "요구사항 정의서_";
         int digitCount = String.valueOf(maxRevision).length();
@@ -275,7 +275,7 @@ public class RequirementService {
         Requirement requirement = requirementRepository.findById(reqPk)
                 .orElseThrow(() -> new RequirementException("해당 요구사항이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
 
-        Integer maxRevision = requirementRepository.getMaxRevisionCount(project);  //요구사항이 삭제된 시점의 리버전
+        int maxRevision = Optional.ofNullable(requirementRepository.getMaxRevisionCount(project)).orElse(0);
 
         // 기존 요구사항 soft delete 정보 입력
         requirement.setDeleted(true);
