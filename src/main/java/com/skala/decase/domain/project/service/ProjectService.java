@@ -4,10 +4,7 @@ import com.skala.decase.domain.document.domain.Document;
 import com.skala.decase.domain.member.domain.Member;
 import com.skala.decase.domain.member.service.MemberService;
 import com.skala.decase.domain.project.controller.dto.request.CreateProjectRequest;
-import com.skala.decase.domain.project.controller.dto.response.EditProjectResponseDto;
-import com.skala.decase.domain.project.controller.dto.response.MappingTableResponseDto;
-import com.skala.decase.domain.project.controller.dto.response.ProjectDetailResponseDto;
-import com.skala.decase.domain.project.controller.dto.response.ProjectResponse;
+import com.skala.decase.domain.project.controller.dto.response.*;
 import com.skala.decase.domain.project.domain.MemberProject;
 import com.skala.decase.domain.project.domain.Project;
 import com.skala.decase.domain.project.domain.ProjectInvitation;
@@ -15,6 +12,7 @@ import com.skala.decase.domain.project.exception.ProjectException;
 import com.skala.decase.domain.project.mapper.MemberProjectMapper;
 import com.skala.decase.domain.project.mapper.ProjectMapper;
 import com.skala.decase.domain.member.repository.MemberProjectRepository;
+import com.skala.decase.domain.project.mapper.SuccessMapper;
 import com.skala.decase.domain.project.repository.ProjectInvitationRepository;
 import com.skala.decase.domain.project.repository.ProjectRepository;
 
@@ -50,6 +48,7 @@ public class ProjectService {
 
     private final ProjectMapper projectMapper;
     private final MemberProjectMapper memberProjectMapper;
+    private final SuccessMapper successMapper;
 
     /**
      * 프로젝트 존재 확인
@@ -57,7 +56,6 @@ public class ProjectService {
     public Project findByProjectId(Long projectId) {
         return projectRepository.findById(projectId)
                 .orElseThrow(() -> new ProjectException("존재하지 않는 프로젝트입니다.", HttpStatus.NOT_FOUND));
-
     }
 
     /**
@@ -122,12 +120,13 @@ public class ProjectService {
     }
 
     @Transactional
-    public String deleteProject(Long projectId) {
+    public DeleteProjectResponse deleteProject(Long projectId) {
+        Project project = findByProjectId(projectId);
+
         projectInvitationRepository.deleteByProject_ProjectId(projectId);
         memberProjectRepository.deleteByProject_ProjectId(projectId);
-        Project project = findByProjectId(projectId);
         projectRepository.delete(project);
-        return "프로젝트가 삭제되었습니다.";
+        return successMapper.toDelete();
     }
 
     // 단일 프로젝트 상세 설명

@@ -1,10 +1,7 @@
 package com.skala.decase.domain.project.controller;
 
 import com.skala.decase.domain.project.controller.dto.request.CreateProjectRequest;
-import com.skala.decase.domain.project.controller.dto.response.EditProjectResponseDto;
-import com.skala.decase.domain.project.controller.dto.response.MappingTableResponseDto;
-import com.skala.decase.domain.project.controller.dto.response.ProjectDetailResponseDto;
-import com.skala.decase.domain.project.controller.dto.response.ProjectResponse;
+import com.skala.decase.domain.project.controller.dto.response.*;
 import com.skala.decase.domain.project.domain.ProjectApiDocument;
 import com.skala.decase.domain.project.service.ProjectService;
 import com.skala.decase.global.model.ApiResponse;
@@ -34,7 +31,7 @@ public class ProjectController {
      * @param request
      * @return
      */
-    @PostMapping("")
+    @PostMapping
     @ProjectApiDocument.CreateApiDoc
     public ResponseEntity<ApiResponse<ProjectResponse>> createProject(
             @Valid @RequestBody CreateProjectRequest request) {
@@ -44,24 +41,30 @@ public class ProjectController {
 
     // 프로젝트 수정
     @PutMapping("/{projectId}")
-    public ResponseEntity<EditProjectResponseDto> updateProject(
+    public ResponseEntity<ApiResponse<EditProjectResponseDto>> updateProject(
             @PathVariable Long projectId,
             @RequestBody CreateProjectRequest request) {
-        return ResponseEntity.ok(projectService.editProject(projectId, request));
+        EditProjectResponseDto responseDto = projectService.editProject(projectId, request);
+        return ResponseEntity.ok()
+                .body(ApiResponse.success(responseDto));
     }
 
     // 프로젝트 삭제
-    @DeleteMapping("{projectId}")
-    public ResponseEntity<String> deleteProject(
+    @DeleteMapping("/{projectId}")
+    public ResponseEntity<ApiResponse<DeleteProjectResponse>> deleteProject(
             @PathVariable Long projectId){
-        return ResponseEntity.ok(projectService.deleteProject(projectId));
+        DeleteProjectResponse response = projectService.deleteProject(projectId);
+        return ResponseEntity.ok()
+                .body(ApiResponse.success(response));
     }
 
     // 단일 프로젝트 조회
-    @GetMapping("{projectId}")
-    public ProjectDetailResponseDto getProject(
+    @GetMapping("/{projectId}")
+    public ResponseEntity<ApiResponse<ProjectDetailResponseDto>> getProject(
             @PathVariable Long projectId) {
-        return projectService.getProject(projectId);
+        ProjectDetailResponseDto responseDto = projectService.getProject(projectId);
+        return ResponseEntity.ok()
+                .body(ApiResponse.success(responseDto));
     }
 
     // 조견표 다운로드 임시 api
