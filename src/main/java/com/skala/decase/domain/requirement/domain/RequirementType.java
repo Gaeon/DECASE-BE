@@ -7,9 +7,13 @@ public enum RequirementType {
     FR, NFR;
 
     public static RequirementType fromKorean(String value) {
+        if (value == null) {
+            return null; // 또는 기본값 반환
+        }
+        
         return switch (value) {
-            case "기능적" -> FR;
-            case "비기능적" -> NFR;
+            case "기능" -> FR;
+            case "비기능" -> NFR;
             default -> throw new RequirementTypeException("Unknown requirement type value: " + value,
                     HttpStatus.BAD_REQUEST);
         };
