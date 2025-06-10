@@ -177,4 +177,9 @@ public class MockupService {
 
         return responses;
     }
+
+	// 해당 리비전에 목업 유무 반환
+	public boolean mockupExists(Long projectId, Integer revisionCount) {
+		return (mockupRepository.existsByProject_ProjectIdAndRevisionCount(projectId, revisionCount));
+	}
 }

@@ -67,4 +67,12 @@ public class MockupController {
 	) throws Exception {
 		return ResponseEntity.ok(mockupService.uploadMockups(projectId, revisionCount, files));
 	}
+
+	@Operation(summary = "해당 프로젝트 요구사항 리비전에 목업이 생성되었는지 유무 반환")
+	@GetMapping("{revisionCount}/exist")
+	public ResponseEntity<Boolean> mockupExists(
+			@PathVariable Long projectId,
+			@PathVariable Integer revisionCount) {
+		return ResponseEntity.ok(mockupService.mockupExists(projectId, revisionCount));
+	}
 }
