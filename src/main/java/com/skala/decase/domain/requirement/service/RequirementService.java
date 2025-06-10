@@ -44,12 +44,19 @@ public class RequirementService {
         return getGeneratedRequirements(projectId, 1);
     }
 
+    /**
+     * 특정 버전의 요구사항 정의서를 불러옵니다.
+     *
+     * @param projectId
+     * @param revisionCount
+     * @return
+     */
     public List<RequirementWithSourceResponse> getGeneratedRequirements(Long projectId, int revisionCount) {
         Project project = projectService.findByProjectId(projectId);
 
         //유효한 요구사항 리스트 조회
         List<Requirement> requirements = requirementRepository.findValidRequirementsByProjectAndRevision(
-                project.getProjectId(), revisionCount);
+                projectId, revisionCount);
 //		System.out.println("조회된 요구사항 개수: " + requirements.size());
         //요구사항이 없는 경우
         if (requirements.isEmpty()) {
@@ -111,8 +118,6 @@ public class RequirementService {
 //		);
 
         // 각 요구사항에 해당하는 Source 리스트 설정
-        // 주의: JPA에서 조회된 엔티티의 컬렉션을 직접 수정하는 것은 권장되지 않으므로
-        // 새로운 리스트를 생성하여 반환하거나 DTO를 사용하는 것이 좋습니다.
         latestRequirements.forEach(requirement -> {
             List<Source> reqSources = sourcesByReqPk.getOrDefault(requirement.getReqIdCode(), new ArrayList<>());
             // 여기서는 기존 sources 리스트를 clear하고 새로 추가
@@ -136,11 +141,11 @@ public class RequirementService {
 
     }
 
-    public Map<String, List<String>> getRequirementCategory(Long projectId) {
+    public Map<String, List<String>> getRequirementCategory(Long projectId, int revisionCount) {
 
         Project project = projectService.findByProjectId(projectId);
 
-        List<Requirement> requirements = requirementRepository.findByProject_AndIsDeletedFalse(project);
+        List<Requirement> requirements = requirementRepository.findValidRequirementsByProjectAndRevision(project.getProjectId(),revisionCount);
 
         Set<String> level1Set = new HashSet<>();
         Set<String> level2Set = new HashSet<>();
