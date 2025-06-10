@@ -10,6 +10,7 @@ import com.skala.decase.domain.requirement.controller.dto.RequirementRevisionDto
 import com.skala.decase.domain.requirement.controller.dto.UpdateRequirementDto;
 import com.skala.decase.domain.requirement.controller.dto.response.RequirementWithSourceResponse;
 import com.skala.decase.domain.requirement.domain.Requirement;
+import com.skala.decase.domain.requirement.domain.RequirementType;
 import com.skala.decase.domain.requirement.exception.RequirementException;
 import com.skala.decase.domain.requirement.mapper.RequirementServiceMapper;
 import com.skala.decase.domain.requirement.repository.RequirementRepository;
@@ -137,6 +138,9 @@ public class RequirementService {
                             new ArrayList<>());
                     return RequirementServiceMapper.toReqWithSrcResponse(requirement, modReasons, revisionCount);
                 })
+                .sorted(Comparator
+                        .comparing(RequirementWithSourceResponse::type)
+                        .thenComparing(RequirementWithSourceResponse::reqIdCode))
                 .toList();
 
     }
