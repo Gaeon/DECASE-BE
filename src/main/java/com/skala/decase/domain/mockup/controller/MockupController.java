@@ -1,5 +1,6 @@
 package com.skala.decase.domain.mockup.controller;
 
+import com.skala.decase.domain.mockup.domain.dto.MockupExistDto;
 import com.skala.decase.domain.mockup.domain.dto.MockupUploadResponse;
 import com.skala.decase.domain.mockup.service.CreateMockupService;
 import com.skala.decase.domain.mockup.service.MockupService;
@@ -96,7 +97,7 @@ public class MockupController {
 
 	@Operation(summary = "해당 프로젝트 요구사항 리비전에 목업이 생성되었는지 유무 반환")
 	@GetMapping("{revisionCount}/exist")
-	public ResponseEntity<Boolean> mockupExists(
+	public ResponseEntity<MockupExistDto> mockupExists(
 			@PathVariable Long projectId,
 			@PathVariable Integer revisionCount) {
 		return ResponseEntity.ok(mockupService.mockupExists(projectId, revisionCount));
