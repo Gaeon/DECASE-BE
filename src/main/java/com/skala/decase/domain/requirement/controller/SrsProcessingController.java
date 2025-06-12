@@ -1,7 +1,7 @@
 package com.skala.decase.domain.requirement.controller;
 
-import com.skala.decase.domain.requirement.service.RfpProcessingService;
-import com.skala.decase.domain.requirement.service.SRSUpdateService;
+import com.skala.decase.domain.requirement.service.SrsProcessingService;
+import com.skala.decase.domain.requirement.service.SrsUpdateService;
 import com.skala.decase.global.model.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "RFP API", description = "요구사항 정의서 관리를 위한 api 입니다.")
+@Tag(name = "Software Requirements Specification API", description = "요구사항 정의서 관리를 위한 api 입니다.")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/projects/")
-public class RfpProcessingController {
+public class SrsProcessingController {
 
-    private final RfpProcessingService rfpProcessingService;
-    private final SRSUpdateService srsUpdateService;
+    private final SrsProcessingService srsProcessingService;
+    private final SrsUpdateService srsUpdateService;
 
     /**
      * 요구사항 정의서 생성
@@ -42,7 +42,7 @@ public class RfpProcessingController {
                                                               @RequestParam("memberId") Long memberId,
                                                               @RequestPart("file") MultipartFile file) {
         // post: /api/v1/process-rfp-file에서 생성된 요구사항 정의서 리스트를 받아옴.
-        rfpProcessingService.createRequirementsSpecification(projectId, memberId, file);
+        srsProcessingService.createRequirementsSpecification(projectId, memberId, file);
         return ResponseEntity.ok().body(ApiResponse.success("요구사항 정의서 생성 완료"));
     }
 

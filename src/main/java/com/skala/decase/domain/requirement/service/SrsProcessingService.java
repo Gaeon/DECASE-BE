@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class RfpProcessingService {
+public class SrsProcessingService {
 
     private final ApplicationEventPublisher eventPublisher;
     private final AsyncRfpProcessor asyncRfpProcessor;

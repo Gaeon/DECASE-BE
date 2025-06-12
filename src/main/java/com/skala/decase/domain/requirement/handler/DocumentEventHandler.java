@@ -1,7 +1,7 @@
 package com.skala.decase.domain.requirement.handler;
 
 import com.skala.decase.domain.requirement.domain.InMemoryMultipartFile;
-import com.skala.decase.domain.requirement.service.RfpProcessingService;
+import com.skala.decase.domain.requirement.service.SrsProcessingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -15,7 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class DocumentEventHandler {
 
-    private final RfpProcessingService rfpProcessingService;
+    private final SrsProcessingService srsProcessingService;
 
     @Async("taskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -32,7 +32,7 @@ public class DocumentEventHandler {
             );
 
             // 트랜잭션 완전 커밋 후 실행
-            rfpProcessingService.processInParallel(
+            srsProcessingService.processInParallel(
                     file,
                     event.getProjectId(),
                     event.getMemberId(),

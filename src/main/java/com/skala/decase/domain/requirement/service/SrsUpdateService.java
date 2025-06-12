@@ -30,7 +30,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class SRSUpdateService {
+public class SrsUpdateService {
 
     private final WebClient webClient;
     private final RequirementUpdateServiceMapper requirementUpdateServiceMapper;
